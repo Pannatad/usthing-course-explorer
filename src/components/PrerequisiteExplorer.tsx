@@ -1,10 +1,10 @@
 import { Link } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { compactCourseCode } from '@/data/catalog';
+import { compactCourseCode, getCourseDetails, terms } from '@/data/catalog';
 import { courseKey, type Course } from '@/data/course';
-import { extendPath, extractCourseCodes, isAlreadyInPath, resolvePrerequisite } from '@/data/prerequisites';
+import { extendPath, isAlreadyInPath, resolvePrerequisite } from '@/data/prerequisites';
 import { colors } from '@/theme';
 
 type NodeProps = {
@@ -15,9 +15,9 @@ type NodeProps = {
 
 function PrerequisiteNode({ code, preferredTermCode, path }: NodeProps) {
   const [expanded, setExpanded] = useState(false);
-  const course = resolvePrerequisite(code, preferredTermCode);
+  const resolution = resolvePrerequisite(code, preferredTermCode);
 
-  if (!course) {
+  if (resolution.status === 'unavailable') {
     return (
       <View style={styles.node}>
         <Text style={styles.nodeCode}>{code}</Text>
@@ -26,8 +26,10 @@ function PrerequisiteNode({ code, preferredTermCode, path }: NodeProps) {
     );
   }
 
+  const course = resolution.summary;
   const repeated = isAlreadyInPath(course, path);
-  const references = extractCourseCodes(course.prerequisite);
+  const detail = expanded && !repeated ? getCourseDetails(course.termCode, course.code) : undefined;
+  const references = detail?.prerequisiteCodes ?? [];
   const nextPath = extendPath(course, path);
 
   return (
@@ -35,34 +37,36 @@ function PrerequisiteNode({ code, preferredTermCode, path }: NodeProps) {
       <Text style={styles.nodeCode}>{course.code}</Text>
       <Text style={styles.nodeTitle}>{course.title}</Text>
       {course.termCode !== preferredTermCode && (
-        <Text style={styles.hint}>Showing {course.termName}; unavailable in the viewed semester.</Text>
+        <Text style={styles.hint}>Showing {terms.find((term) => term.code === course.termCode)?.name}; unavailable in the viewed semester.</Text>
       )}
       <Link
         href={{ pathname: '/course/[termCode]/[courseCode]', params: { termCode: course.termCode, courseCode: compactCourseCode(course.code) } }}
-        style={styles.link}>
+        style={styles.link}
+        onPress={() => Keyboard.dismiss()}>
         Open course details →
       </Link>
       {repeated ? (
         <Text style={styles.hint}>Already visited on this path. This branch stops here.</Text>
-      ) : references.length > 0 ? (
+      ) : course.prerequisiteCount > 0 ? (
         <>
           <Pressable
             accessibilityRole="button"
+            accessibilityState={{ expanded }}
             accessibilityLabel={`${expanded ? 'Hide' : 'Show'} prerequisites for ${course.code}`}
             onPress={() => setExpanded(!expanded)}
             style={styles.expandButton}>
-            <Text style={styles.expandText}>{expanded ? 'Hide' : 'Show'} prerequisites ({references.length})</Text>
+            <Text style={styles.expandText}>{expanded ? 'Hide' : 'Show'} prerequisites ({course.prerequisiteCount})</Text>
           </Pressable>
           {expanded && (
             <View style={styles.children}>
-              <Text style={styles.logic}>{course.prerequisite}</Text>
+              <Text style={styles.logic}>{detail?.prerequisite}</Text>
               {references.map((reference) => (
                 <PrerequisiteNode key={reference} code={reference} preferredTermCode={preferredTermCode} path={nextPath} />
               ))}
             </View>
           )}
         </>
-      ) : course.prerequisite ? (
+      ) : course.hasPrerequisite ? (
         <Text style={styles.hint}>No linked course codes in this prerequisite text.</Text>
       ) : (
         <Text style={styles.hint}>No listed prerequisites.</Text>
@@ -72,14 +76,14 @@ function PrerequisiteNode({ code, preferredTermCode, path }: NodeProps) {
 }
 
 export function PrerequisiteExplorer({ course }: { course: Course }) {
-  const references = extractCourseCodes(course.prerequisite);
+  const references = course.prerequisiteCodes;
   if (!course.prerequisite) return <Text style={styles.hint}>No listed prerequisites.</Text>;
   if (!references.length) return <Text style={styles.hint}>No course codes could be linked from this text.</Text>;
 
   const path = new Set([courseKey(course)]);
   return (
     <View style={styles.root}>
-      <Text style={styles.intro}>Referenced courses ({references.length})</Text>
+      <Text style={styles.intro}>Referenced courses ({course.prerequisiteCount})</Text>
       {references.map((code) => (
         <PrerequisiteNode key={code} code={code} preferredTermCode={course.termCode} path={path} />
       ))}

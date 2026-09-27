@@ -4,9 +4,8 @@ import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { CourseRow } from '@/components/CourseRow';
 import { OptionPicker } from '@/components/OptionPicker';
 import { SearchField } from '@/components/SearchField';
-import { defaultTerm, getCoursesForTerm, terms } from '@/data/catalog';
+import { defaultTerm, searchCourses, terms } from '@/data/catalog';
 import { courseKey } from '@/data/course';
-import { filterCourses } from '@/data/search';
 import { colors } from '@/theme';
 
 const termOptions = terms.map((term) => ({ value: term.code, label: term.name }));
@@ -16,12 +15,11 @@ export default function HomeScreen() {
   const [department, setDepartment] = useState('All');
   const [query, setQuery] = useState('');
   const term = terms.find((item) => item.code === termCode) ?? defaultTerm;
-  const courses = getCoursesForTerm(termCode);
   const departmentOptions = useMemo(() => [
     { value: 'All', label: 'All departments' },
     ...term.departments.map((value) => ({ value, label: value })),
   ], [term]);
-  const results = useMemo(() => filterCourses(courses, department, query), [courses, department, query]);
+  const results = useMemo(() => searchCourses({ termCode, department, query }), [termCode, department, query]);
 
   function changeTerm(nextTermCode: string) {
     setTermCode(nextTermCode);
@@ -31,6 +29,8 @@ export default function HomeScreen() {
 
   return (
     <FlatList
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="on-drag"
       style={styles.screen}
       contentContainerStyle={styles.content}
       data={results}
@@ -39,7 +39,7 @@ export default function HomeScreen() {
       ItemSeparatorComponent={() => <View style={styles.separator} />}
       ListHeaderComponent={
         <View style={styles.header}>
-          <Text style={styles.intro}>Explore Clear Water Bay courses and their prerequisites.</Text>
+          <Text style={styles.intro}>Explore courses and their prerequisites.</Text>
           <SearchField value={query} onChangeText={setQuery} />
           <View style={styles.filters}>
             <OptionPicker label="Semester" value={termCode} options={termOptions} onChange={changeTerm} />
@@ -63,3 +63,5 @@ const styles = StyleSheet.create({
   empty: { color: colors.secondaryText, fontSize: 15, lineHeight: 23, paddingVertical: 24 },
   separator: { height: 12 },
 });
+
+export { CatalogErrorBoundary as ErrorBoundary } from '@/components/CatalogErrorBoundary';

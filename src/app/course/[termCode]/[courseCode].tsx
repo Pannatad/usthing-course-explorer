@@ -2,7 +2,7 @@ import { Link, Stack, useLocalSearchParams } from 'expo-router';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { PrerequisiteExplorer } from '@/components/PrerequisiteExplorer';
-import { getCourse } from '@/data/catalog';
+import { getCourseDetails } from '@/data/catalog';
 import { formatCredits } from '@/data/course';
 import { colors } from '@/theme';
 
@@ -11,7 +11,8 @@ export default function CourseDetailsScreen() {
     termCode: string;
     courseCode: string;
   }>();
-  const course = getCourse(termCode, courseCode);
+  const course = typeof termCode === 'string' && typeof courseCode === 'string'
+    ? getCourseDetails(termCode, courseCode) : undefined;
 
   if (!course) {
     return (
@@ -75,3 +76,5 @@ const styles = StyleSheet.create({
   body: { color: colors.text, fontSize: 15, lineHeight: 23 },
   link: { color: colors.accent, fontSize: 15, fontWeight: '700', marginTop: 12 },
 });
+
+export { CatalogErrorBoundary as ErrorBoundary } from '@/components/CatalogErrorBoundary';

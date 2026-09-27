@@ -1,12 +1,12 @@
 import { Link } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { formatCredits, type Course } from '@/data/course';
+import { formatCredits, type CourseSummary } from '@/data/course';
 import { compactCourseCode } from '@/data/catalog';
 import { colors } from '@/theme';
 
 type CourseRowProps = {
-  course: Course;
+  course: CourseSummary;
 };
 
 export function CourseRow({ course }: CourseRowProps) {
@@ -20,7 +20,7 @@ export function CourseRow({ course }: CourseRowProps) {
         },
       }}
       asChild>
-      <Pressable accessibilityRole="button" accessibilityLabel={`Open ${course.code}, ${course.title}`}>
+      <Pressable onPress={() => Keyboard.dismiss()} accessibilityRole="button" accessibilityLabel={`Open ${course.code}, ${course.title}`}>
         {({ pressed }) => (
           <View style={[styles.card, pressed && styles.pressed]}>
             <View style={styles.information}>
