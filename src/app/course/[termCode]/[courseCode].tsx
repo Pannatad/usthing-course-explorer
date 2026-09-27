@@ -42,7 +42,7 @@ export default function CourseDetailsScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Prerequisites</Text>
         <Text style={styles.body}>{course.prerequisite || 'No listed prerequisites.'}</Text>
-        <PrerequisiteExplorer course={course} />
+        {!!course.prerequisite && <PrerequisiteExplorer course={course} />}
       </View>
 
       {!!course.corequisite && (

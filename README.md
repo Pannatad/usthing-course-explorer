@@ -68,7 +68,7 @@ A course record is identified by **term code + course code**. Source `id` values
 
 ## Validation status
 
-On 2026-09-27, six pure-function tests, TypeScript, Expo lint, web export, and iOS JavaScript bundling passed. The browser preview was manually checked for the real Fall list, code search, semester/department controls, empty state, course details, direct/recursive prerequisites, semester fallback, unavailable references, and a missing detail route.
+On 2026-09-27, six pure-function tests, TypeScript, Expo lint, web export, and iOS JavaScript bundling passed. Regenerating the data produced no changes. A fresh local clone passed `npm ci`, tests, typecheck, and lint. The browser preview was manually checked for the real Fall list, code search, semester/department controls, empty state, course details, direct/recursive prerequisites, semester fallback, unavailable references, and a missing detail route.
 
 **iOS Simulator interaction has not been tested yet.** This Mac currently has Command Line Tools but no Xcode or `simctl`. Xcode and an iOS Simulator runtime must be installed before claiming native UX verification. The bundle export confirms the JavaScript can be compiled for iOS; it does not replace a simulator run. No measured native scrolling or tap performance claim is made.
 
