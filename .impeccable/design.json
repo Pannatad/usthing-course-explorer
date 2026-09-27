@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-27T07:47:03Z",
+  "title": "Design System: HKUST Course Explorer",
+  "extensions": {
+    "colorMeta": {
+      "primary": { "role": "primary", "displayName": "USThing Blue", "canonical": "#235596", "tonalRamp": ["#102C50", "#173D6F", "#1C4B86", "#235596", "#3C6BA6", "#7699C2", "#B0CAE4", "#E3EEFB"] },
+      "primary-soft": { "role": "secondary", "displayName": "Course Blue", "canonical": "#E3EEFB", "tonalRamp": ["#173D6F", "#235596", "#4773A9", "#7699C2", "#9FBBDC", "#C1D7ED", "#E3EEFB", "#F4F8FD"] }
+    },
+    "motion": [],
+    "shadows": []
+  },
+  "components": [
+    {
+      "name": "Course row",
+      "kind": "card",
+      "refersTo": "course-row",
+      "description": "Selectable course summary in the catalogue.",
+      "html": "<div class=\"ds-course-row\"><strong>COMP 2011</strong><span>Programming with C++</span></div>",
+      "css": ".ds-course-row{display:flex;flex-direction:column;gap:8px;padding:18px 20px;border-radius:16px;background:#E3EEFB;color:#252525;font:16px system-ui}.ds-course-row strong{color:#235596;font-size:20px}.ds-course-row:focus-within{outline:2px solid #235596}"
+    },
+    {
+      "name": "Search field",
+      "kind": "input",
+      "refersTo": "search-field",
+      "description": "Course code and title search.",
+      "html": "<input class=\"ds-search-field\" placeholder=\"Search courses\" />",
+      "css": ".ds-search-field{padding:14px 16px;border:0;border-radius:12px;background:#F1F4F8;color:#252525;font:16px system-ui}.ds-search-field:focus-visible{outline:2px solid #235596}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Academics in Hand",
+    "overview": "Familiar USThing blue navigation, soft blue course rows, and white reading space.",
+    "keyCharacteristics": ["familiar navigation", "obvious search", "compact course rows"],
+    "rules": [{ "name": "The Information Rule", "body": "Color identifies navigation and selection; it never substitutes for a label or status message.", "section": "colors" }],
+    "dos": ["Keep the USThing blue header and pale blue course-row vocabulary consistent on both screens."],
+    "donts": ["Do not copy unrelated USThing modules, grade statistics, timetable data, or section information into this course explorer."]
+  }
+}

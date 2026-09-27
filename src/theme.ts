@@ -1,8 +1,11 @@
 export const colors = {
-  background: '#F6F8FB',
+  background: '#FFFFFF',
   surface: '#FFFFFF',
-  text: '#16253D',
-  secondaryText: '#52627A',
-  accent: '#245B9A',
-  border: '#DDE5EF',
+  text: '#252525',
+  secondaryText: '#5C5B6B',
+  accent: '#235596',
+  courseSurface: '#E3EEFB',
+  pressedSurface: '#D6E7FA',
+  searchSurface: '#F1F4F8',
+  border: '#D7E2EF',
 } as const;

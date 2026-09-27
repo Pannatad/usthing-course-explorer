@@ -69,19 +69,19 @@ export function OptionPicker({ label, value, options, onChange }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, minWidth: 140, gap: 6 },
-  label: { color: colors.secondaryText, fontSize: 13, fontWeight: '600' },
-  trigger: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, borderWidth: 1, borderColor: colors.border, borderRadius: 10, backgroundColor: colors.surface, paddingHorizontal: 12 },
-  triggerText: { color: colors.text, fontSize: 14, flex: 1 },
+  container: { flex: 1, minWidth: 140, gap: 7 },
+  label: { color: colors.secondaryText, fontSize: 14, fontWeight: '600' },
+  trigger: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, borderWidth: 1, borderColor: colors.accent, borderRadius: 9, backgroundColor: colors.surface, paddingHorizontal: 12 },
+  triggerText: { color: colors.text, fontSize: 14, fontWeight: '600', flex: 1 },
   chevron: { color: colors.accent, fontSize: 22 },
-  overlay: { flex: 1, justifyContent: 'center', backgroundColor: '#16253D99', padding: 20 },
+  overlay: { flex: 1, justifyContent: 'center', backgroundColor: '#102F58A8', padding: 20 },
   dialog: { backgroundColor: colors.surface, borderRadius: 16, alignSelf: 'center', width: '100%', maxWidth: 500, maxHeight: '75%', padding: 16 },
   heading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 10 },
   headingText: { color: colors.text, fontSize: 18, fontWeight: '700' },
   close: { color: colors.accent, fontSize: 15, fontWeight: '600', padding: 8 },
   search: { minHeight: 44, borderColor: colors.border, borderWidth: 1, borderRadius: 8, color: colors.text, paddingHorizontal: 12, marginBottom: 8 },
   option: { minHeight: 48, justifyContent: 'center', paddingHorizontal: 14, borderRadius: 8 },
-  activeOption: { backgroundColor: '#E8F0FA' },
+  activeOption: { backgroundColor: colors.courseSurface },
   optionText: { color: colors.text, fontSize: 15 },
   activeText: { color: colors.accent, fontWeight: '700' },
 });

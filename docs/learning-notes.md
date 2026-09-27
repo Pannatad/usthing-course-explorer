@@ -151,3 +151,21 @@ The README records setup, data provenance, route and state structure, matching r
 ### Your hands-on check
 
 Explain to an interviewer: why `termCode + code` is the identity, why generated data is checked in, why `FlatList` is used, and why the original prerequisite sentence must stay on screen.
+
+## Visual alignment — USThing screenshots
+
+### High-level understanding
+
+The screenshots are a visual reference for this course explorer. They show a consistent blue navigation bar, light search controls, and soft blue content rows. We use those patterns for the required course flow.
+
+### Intuition and small example
+
+The real app's Grade Distribution page has a search field above pale blue course rows. Our catalogue uses the same hierarchy, but a row shows course title and credits instead of grade percentages.
+
+### Detailed explanation and choice
+
+`src/theme.ts` holds the shared colors. The root stack applies the blue header to both routes. `SearchField`, `OptionPicker`, and `CourseRow` are reusable UI pieces; the detail page uses one pale blue course summary and plain reading sections. This keeps the look consistent without creating new product features or putting details inside nested cards.
+
+### Your hands-on check
+
+Open the list and a detail page. Point to the blue header, the pale blue course summary, and one place where the component uses a color from `src/theme.ts`.

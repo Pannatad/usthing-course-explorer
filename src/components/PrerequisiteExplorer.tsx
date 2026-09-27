@@ -88,15 +88,15 @@ export function PrerequisiteExplorer({ course }: { course: Course }) {
 }
 
 const styles = StyleSheet.create({
-  root: { gap: 10, marginTop: 6 },
-  intro: { color: colors.secondaryText, fontSize: 13, fontWeight: '600' },
-  node: { borderLeftWidth: 2, borderLeftColor: colors.border, paddingLeft: 12, paddingVertical: 8, gap: 5 },
-  nodeCode: { color: colors.accent, fontSize: 14, fontWeight: '700' },
-  nodeTitle: { color: colors.text, fontSize: 14, fontWeight: '600' },
-  hint: { color: colors.secondaryText, fontSize: 13, lineHeight: 19 },
-  link: { color: colors.accent, fontSize: 14, fontWeight: '600', paddingVertical: 7, alignSelf: 'flex-start' },
-  expandButton: { alignSelf: 'flex-start', minHeight: 40, justifyContent: 'center' },
-  expandText: { color: colors.accent, fontSize: 14, fontWeight: '600' },
-  children: { marginTop: 4, gap: 8 },
-  logic: { color: colors.secondaryText, fontSize: 13, lineHeight: 19, fontStyle: 'italic' },
+  root: { gap: 4, marginTop: 10 },
+  intro: { color: colors.secondaryText, fontSize: 14, fontWeight: '600', marginBottom: 4 },
+  node: { borderBottomWidth: 1, borderBottomColor: colors.border, paddingVertical: 12, gap: 6 },
+  nodeCode: { color: colors.accent, fontSize: 17, fontWeight: '700' },
+  nodeTitle: { color: colors.text, fontSize: 15, fontWeight: '600' },
+  hint: { color: colors.secondaryText, fontSize: 13, lineHeight: 20 },
+  link: { color: colors.accent, fontSize: 14, fontWeight: '700', paddingVertical: 8, alignSelf: 'flex-start' },
+  expandButton: { alignSelf: 'flex-start', minHeight: 44, justifyContent: 'center', backgroundColor: colors.courseSurface, borderRadius: 8, paddingHorizontal: 12 },
+  expandText: { color: colors.accent, fontSize: 14, fontWeight: '700' },
+  children: { marginTop: 6, marginLeft: 14, gap: 4 },
+  logic: { color: colors.secondaryText, fontSize: 13, lineHeight: 20 },
 });

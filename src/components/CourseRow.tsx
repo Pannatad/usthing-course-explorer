@@ -23,12 +23,14 @@ export function CourseRow({ course }: CourseRowProps) {
       <Pressable accessibilityRole="button" accessibilityLabel={`Open ${course.code}, ${course.title}`}>
         {({ pressed }) => (
           <View style={[styles.card, pressed && styles.pressed]}>
-            <View style={styles.heading}>
-              <Text style={styles.code}>{course.code}</Text>
-              <Text style={styles.credits}>{formatCredits(course)}</Text>
+            <View style={styles.information}>
+              <View style={styles.heading}>
+                <Text style={styles.code}>{course.code}</Text>
+                <Text style={styles.credits}>{formatCredits(course)}</Text>
+              </View>
+              <Text style={styles.title}>{course.title}</Text>
             </View>
-            <Text style={styles.title}>{course.title}</Text>
-            <Text style={styles.detail}>View course details →</Text>
+            <Text style={styles.chevron} accessibilityElementsHidden>›</Text>
           </View>
         )}
       </Pressable>
@@ -38,38 +40,44 @@ export function CourseRow({ course }: CourseRowProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderWidth: 1,
+    backgroundColor: colors.courseSurface,
     borderRadius: 16,
-    padding: 18,
-    gap: 8,
-  },
-  pressed: {
-    opacity: 0.72,
-  },
-  heading: {
+    paddingHorizontal: 20,
+    paddingVertical: 18,
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 12,
+  },
+  pressed: {
+    backgroundColor: colors.pressedSurface,
+  },
+  information: { flex: 1, gap: 8 },
+  heading: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: 12,
   },
   code: {
     color: colors.accent,
-    fontSize: 14,
+    fontSize: 21,
     fontWeight: '700',
   },
   credits: {
-    color: colors.secondaryText,
-    fontSize: 13,
+    color: colors.text,
+    fontSize: 12,
+    fontWeight: '600',
+    backgroundColor: colors.surface,
+    overflow: 'hidden',
+    borderRadius: 12,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
   },
   title: {
     color: colors.text,
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 16,
+    lineHeight: 22,
+    fontWeight: '500',
   },
-  detail: {
-    color: colors.secondaryText,
-    fontSize: 13,
-  },
+  chevron: { color: colors.accent, fontSize: 29, lineHeight: 30, fontWeight: '400' },
 });

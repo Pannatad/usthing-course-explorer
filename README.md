@@ -2,6 +2,8 @@
 
 A local-data React Native/Expo app for the [USThing App Team technical test](https://simplistic-plough-ea3.notion.site/App-Team-2026-27-Fall-Technical-Test-Guideline-3dfcd8c4d00080d48650c130cc5f328d). Browse Clear Water Bay courses, filter by semester and department, search course code or title, read details, and follow prerequisites recursively.
 
+The course screens use the blue header, soft blue rows, and search layout from nine user-supplied screenshots of the USThing app. [PRODUCT.md](PRODUCT.md) records the product scope and [DESIGN.md](DESIGN.md) records the visual choices. The course workflow does not include the unrelated USThing features pictured in those references.
+
 The later test update removes all section-specific information. This app does not display section quota, enrolment, availability, or waiting lists.
 
 ## Run
