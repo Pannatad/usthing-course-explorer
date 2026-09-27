@@ -48,7 +48,7 @@ Tap `DEMO 2000`, use Back, then explain which value came from the URL and which 
 
 ### High-level understanding
 
-The supplied JSON is source material. A Node script converts it into the smaller, typed shape that the app needs. The phone will use the generated semester files, not parse the 28.9 MB source file.
+The pinned UST Archive Hugging Face Parquet snapshot is source material. An import script selects the four displayed semesters, and a Node script converts those rows into the smaller, typed shape that the app needs. The phone uses the generated semester files, not the source Parquet file.
 
 ### Intuition and small example
 
@@ -56,11 +56,11 @@ The source has separate `prefix: "COMP"` and `number: "2011"` fields. We combine
 
 ### Why this structure
 
-The build step removes Guangzhou rows because this explorer focuses on Clear Water Bay. It retains the original file for reproducibility and creates four compact semester files (roughly 2 MB each). The manifest lists semesters, departments, and which semester contains each course code.
+The import keeps Clear Water Bay rows from four semesters. The build step selects the newest version of each course and excludes inactive records. It retains the original Parquet file for reproducibility and creates four summary files and shared detail chunks. The manifest lists semesters, departments, and which semester contains each course code.
 
 ### Your hands-on check
 
-Open one row in `data/source/courses.json` and compare it with the corresponding row in `src/data/generated/2610.json`. Identify two source fields that the app keeps and one it drops.
+Open one row in `data/source/courses.json` and compare it with the corresponding row in `src/data/generated/summaries/2610.json`. Identify two source fields that the app keeps and one it drops.
 
 ## Phase 3 — Real catalogue and details
 
@@ -70,15 +70,15 @@ The home screen loads one semester of prepared courses. A row contains a short s
 
 ### Intuition and small example
 
-The default 2026–27 Fall term has 3,170 Clear Water Bay records. Tapping `COMP 2011` opens `/course/2610/COMP2011`; the route asks the catalogue for that exact record. The list stays available when you go back.
+The default 2026–27 Fall term has 3,182 Clear Water Bay records. Tapping `COMP 2011` opens `/course/2610/COMP2011`; the route asks the catalogue for that exact record. The list stays available when you go back.
 
 ### Detailed explanation and choice
 
-`catalog.ts` statically references the four generated JSON files, which Metro can bundle. It indexes a term the first time it is requested. `FlatList` mounts a window of rows instead of thousands of cards. Route files display data; lookup and formatting stay in `src/data/`.
+`catalog.ts` uses a generated registry of literal JSON loaders, which Metro can bundle. The repository indexes summaries the first time a term is requested and accesses details only when needed. `FlatList` mounts a window of rows instead of thousands of cards. Route files display data; lookup and formatting stay in `src/data/`.
 
 ### Your hands-on check
 
-Search for `COMP 2011`, open it, then explain why a list of 3,170 cards is better served by `FlatList` than `courses.map(...)` inside a `ScrollView`.
+Search for `COMP 2011`, open it, then explain why a list of 3,182 cards is better served by `FlatList` than `courses.map(...)` inside a `ScrollView`.
 
 ## Phase 4 — Filters and search
 
@@ -92,11 +92,11 @@ With Fall + CSE + `comp2011`, one result appears. With Fall + MATH + `comp2011`,
 
 ### Detailed explanation and choice
 
-`filterCourses` is a pure function. It normalizes case and removes whitespace from the query and searchable fields. `useMemo` only recomputes results when inputs change. A small searchable picker uses native `Modal` and `FlatList`; no picker or search package is needed.
+`searchCourses` queries the repository. Searchable strings are normalized once per semester, while each query is normalized once per search. Department indexes narrow the candidates. `useMemo` only recomputes results when inputs change. A small searchable picker uses native `Modal` and `FlatList`; no picker or search package is needed.
 
 ### Your hands-on check
 
-Predict the result count for `MATH` and `comp2011`, then try it. Find where `setQuery` changes state and where `filterCourses` turns state into visible rows.
+Predict the result count for `MATH` and `comp2011`, then try it. Find where `setQuery` changes state and where `searchCourses` turns state into visible rows.
 
 ## Phase 5 — Recursive prerequisites
 
@@ -110,7 +110,7 @@ A course's prerequisite text is a statement of conditions. The explorer extracts
 
 ### Detailed explanation and choice
 
-`extractCourseCodes` uses a small pattern and prefixes known to the supplied catalogue. `resolvePrerequisite` first tries the viewed term, then the newest available term. A `Set` of visited `termCode:courseCode` keys is copied for each branch; revisiting a key stops that branch. The user expands one node at a time, avoiding eager rendering of a large graph. Some natural-language shorthand cannot be linked automatically, so the source text always remains visible.
+Build-time `extractCourseCodes` recognizes known prefixes, unknown uppercase four-letter references, and immediate slash/comma/AND/OR shorthand. Runtime components consume generated references. `resolvePrerequisite` first tries the viewed term, then the newest available term. A `Set` of visited `termCode:courseCode` keys is copied for each branch; revisiting a key stops that branch. The user expands one node at a time, avoiding eager rendering of a large graph. Other natural-language relationships cannot be interpreted automatically, so the source text always remains visible.
 
 ### Your hands-on check
 
@@ -128,7 +128,7 @@ A test checks that `comp2011` resolves to `COMP 2011`, while `MATH + comp2011` r
 
 ### Detailed explanation and choice
 
-Vitest covers preprocessing, uniqueness, search, extraction, semester fallback, and path-local cycle logic. TypeScript and lint check code structure. Web and iOS exports verify bundling. Browser checks cover user journeys. Native interaction and performance remain unverified until Xcode and a simulator are installed on this Mac.
+Vitest covers preprocessing, uniqueness, search, extraction, semester fallback, and path-local cycle logic. TypeScript and lint check code structure. Web and iOS exports verify bundling. Browser checks cover user journeys. Focused iOS Expo Go interactions now pass on Xcode 26.4.1 / iOS 26.4. Standalone offline, Android, enlarged text, and native performance acceptance remain pending; see validation.md.
 
 ### Your hands-on check
 
@@ -142,11 +142,11 @@ A reviewer should know how to run the app, where the data came from, and what as
 
 ### Intuition and small example
 
-A fresh clone can run `npm ci` and `npm run web` without downloading a course API. `npm run prepare:data` recreates the term files from the included original JSON.
+A fresh clone can run `npm ci` and `npm run web` without downloading a course API. `npm run prepare:data` recreates the term files from the checked-in JSON extracted from the pinned Hugging Face Parquet snapshot.
 
 ### Detailed explanation and choice
 
-The README records setup, data provenance, route and state structure, matching rules, prerequisite limitations, checks performed, and the missing native verification. The app keeps the required feature set compact; no favourites, timetable, backend, or graph library were added.
+The README records setup, data provenance, route and state structure, matching rules, prerequisite limitations, checks performed, and the remaining native acceptance checks. The app keeps the required feature set compact; no favourites, timetable, backend, or graph library were added.
 
 ### Your hands-on check
 
@@ -169,3 +169,21 @@ The real app's Grade Distribution page has a search field above pale blue course
 ### Your hands-on check
 
 Open the list and a detail page. Point to the blue header, the pale blue course summary, and one place where the component uses a color from `src/theme.ts`.
+
+## Phase 8 — Shared details and bounded runtime work
+
+### High-level understanding
+
+A list needs short summaries. Full descriptions are separate reference material, shared when identical across semesters. The repository hides this storage arrangement from screens.
+
+### Intuition and small example
+
+If four versions of COMP 2011 have identical text, they point to the same detail ID. If one semester changes its prerequisite, that record points to a different payload. A detail ID of 257 means chunk 1, slot 1 with 256-item chunks. Routes still use semester and course code.
+
+### Detailed explanation and choice
+
+The generator sorts canonical payloads before assigning IDs, validates references, and replaces its output directory only after success. Tests reconstruct all 12,476 records to check preservation. Runtime JSON is 48.7% smaller; this does not imply the native executable shrinks by the same amount. Metro retains loaded modules, so caches are finite but not an eviction mechanism.
+
+### Your hands-on check
+
+Run `npm run check:data`, then inspect `src/data/generated/quality-report.json`. Explain why first catalogue search accesses no detail loaders and why an unavailable route differs from a corrupt detail reference.

@@ -1,0 +1,26 @@
+{
+  "scope": "Node host only; not native UI performance",
+  "node": "v22.22.3",
+  "platform": "darwin",
+  "arch": "arm64",
+  "cpu": "Apple M5 Pro",
+  "firstTermMs": 3.658875000000009,
+  "searchOperations": 120,
+  "searchMedianMs": 0.034041000000001986,
+  "searchP95Ms": 0.12812499999999716,
+  "firstDetailMs": 0.45633399999999824,
+  "repeatDetailMs": 0.006540999999998576,
+  "cycles": 20,
+  "cachesAfter20Cycles": {
+    "loadedTerms": [
+      "2610",
+      "2540",
+      "2530",
+      "2520"
+    ],
+    "loadedDetailChunks": [
+      7,
+      1
+    ]
+  }
+}

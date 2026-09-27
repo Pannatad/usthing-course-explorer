@@ -41,3 +41,7 @@ example
 # generated native folders
 /ios
 /android
+
+# Optional data reproduction environment
+.venv-data/
+__pycache__/

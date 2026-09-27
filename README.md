@@ -1,81 +1,111 @@
 # HKUST Course Explorer
 
-A local-data React Native/Expo app for the [USThing App Team technical test](https://simplistic-plough-ea3.notion.site/App-Team-2026-27-Fall-Technical-Test-Guideline-3dfcd8c4d00080d48650c130cc5f328d). Browse Clear Water Bay courses, filter by semester and department, search course code or title, read details, and follow prerequisites recursively.
+An offline React Native / Expo app for the [USThing App Team technical test](https://simplistic-plough-ea3.notion.site/App-Team-2026-27-Fall-Technical-Test-Guideline-3dfcd8c4d00080d48650c130cc5f328d). Browse Clear Water Bay courses, filter by semester and department, search code or title, read details, and explore prerequisites recursively.
 
-The course screens use the blue header, soft blue rows, and search layout from nine user-supplied screenshots of the USThing app. [PRODUCT.md](PRODUCT.md) records the product scope and [DESIGN.md](DESIGN.md) records the visual choices. The course workflow does not include the unrelated USThing features pictured in those references.
-
-The later test update removes all section-specific information. This app does not display section quota, enrolment, availability, or waiting lists.
+The blue header and soft blue rows follow the supplied USThing screenshots. [PRODUCT.md](PRODUCT.md) records scope; [DESIGN.md](DESIGN.md) records visual choices. As clarified in the test update, the app excludes section quota, enrolment, availability, and waiting lists.
 
 ## Run
 
-Use Node.js 22.13 or newer. In this repository:
+Use Node.js 22.13 or newer (verified with 22.22.3):
 
 ```bash
 npm ci
 npm run web
-```
-
-For an iOS Simulator after installing a compatible Xcode and simulator runtime:
-
-```bash
+# Or, with a simulator/device available:
 npm run ios
+npm run android
 ```
 
-On the current macOS 26.3.2 machine, download **Xcode 26.4.1** from [Apple Developer Downloads](https://developer.apple.com/download/all/?q=Xcode%2026.4.1) after signing in with an Apple Account. Open the downloaded archive, move Xcode to Applications, launch it, and install an iOS Simulator runtime during first-run setup. In Xcode Settings → Locations, choose this Xcode in **Command Line Tools**. Check `xcrun simctl list devices` before running `npm run ios`. [Expo SDK 57](https://docs.expo.dev/versions/latest/) needs Xcode 26.4 or newer; [Apple's requirements](https://developer.apple.com/xcode/system-requirements) list Xcode 26.4.1 as compatible with macOS 26.2–26.x.
+The project uses Expo SDK 57, React Native 0.86, and Expo Router. Generated runtime data is committed: normal startup needs neither Python nor a live catalogue API. Expo Go development requires the Metro server. Standalone offline use must be verified with an installed preview build.
 
-The project uses Expo Router and Expo SDK 57. A development server URL appears in Terminal. Edit a screen, save it, and Expo refreshes the preview. The browser is useful for fast feedback, but native validation still requires a simulator or device.
+This Mac now has Xcode 26.4.1 and an iOS 26.4 Simulator. For another Mac, install a compatible Xcode and iOS runtime, select its Command Line Tools location, and confirm `xcrun simctl list devices`. See [SDK 57 documentation](https://docs.expo.dev/versions/v57.0.0/). Android development requires an emulator or connected device; this machine currently has neither configured.
 
-## Verify and regenerate data
+## Verify and regenerate
 
 ```bash
-npm run prepare:data
-npm test
-npx tsc --noEmit
+npm run check:data       # Regenerate in a temporary directory; compare names and contents
+npm test                # Vitest data tests, then Jest / Expo screen tests
+npm run typecheck
 npx expo lint
-npx expo export --platform ios
-npx expo export --platform web
+npx expo-doctor
+npx expo export --platform all
+git diff --check
 ```
 
-`prepare:data` reads the checked-in source and overwrites the generated files. The generated files are included, so regeneration is optional for a normal run. They should never be edited by hand.
+`npm run prepare:data` replaces only `src/data/generated/` after successful generation and validation. Do not edit generated files manually. `test:data` and `test:ui` run the suites independently.
 
-## What is where
+To reproduce the Parquet extraction separately:
+
+```bash
+python3 -m venv .venv-data
+.venv-data/bin/pip install -r scripts/requirements-data.txt
+.venv-data/bin/python scripts/import-hf-catalog.py
+npm run prepare:data
+npm run check:data
+```
+
+Python dependencies are pinned (`pyarrow==21.0.0`). The importer projects only required columns, processes 4,096-row Parquet batches, filters selected terms/campus, and writes incrementally. Downloads replace the cached snapshot only after SHA-256 verification. Both import and preparation use `data/catalog-config.json`.
+
+## Structure
 
 | Path | Responsibility |
 | --- | --- |
-| `src/app/_layout.tsx` | One stack navigator with home and course detail routes. |
-| `src/app/index.tsx` | Catalogue, local filter state, search box, result count, and `FlatList`. |
-| `src/app/course/[termCode]/[courseCode].tsx` | Details for the record named by route parameters. |
-| `src/components/` | Reusable course row, option picker, and prerequisite explorer. |
-| `src/data/catalog.ts` | Loads each prepared term once and indexes it by course code. |
-| `src/data/search.ts` | Pure department and code/title filtering. |
-| `src/data/prerequisites.ts` | Extracts course-code links, resolves semesters, and tracks a traversal path. |
-| `scripts/prepare-courses.mjs` | Converts the original JSON into four compact term files and a manifest. |
-| `docs/learning-notes.md` | Phase-by-phase explanations and interview checks. |
+| `src/app/` | Expo Router catalogue and course detail routes |
+| `src/components/` | Course row, search, keyboard-aware picker, prerequisite tree, controlled error screen |
+| `src/data/course.ts` | Summary, shared detail, and reconstructed course types |
+| `src/data/repository.ts` | Lazy term indexes, search, exact lookup, detail chunk access |
+| `src/data/catalog.ts` | Production repository and generated loaders |
+| `src/data/prerequisites.ts` | Semester resolution and branch-local cycle tracking |
+| `scripts/lib/prerequisite-parser.mjs` | Pure build-time reference scanner |
+| `scripts/prepare-courses.mjs` | Version selection, validation, deduplication, artifact generation |
+| `tests/` | Data regression tests and small-fixture screen/router tests |
+| `docs/validation.md` | Measured results, tested flows, and pending acceptance checks |
+| `docs/learning-notes.md` | Implementation explanations and interview exercises |
 
-## Data and identity
+## Data design
 
-The source is `data/source/courses.json` from the [optional USThing starter repository](https://github.com/USThing/AppTechTest2627Fall) at commit `a37d444069d15fcb6e6631473f55c8bf3a9d3458` (SHA-256 `c0e342da1c1674c93ad4f466383d2ea99e7732ab2a830e1a7bc17dcb7772a4d1`). It has 15,178 records across four semesters. The app intentionally keeps the 12,427 `MAIN` (Clear Water Bay) records and excludes Guangzhou rows. The original 28.9 MB file is in the repository for reproducibility and is never imported into the app bundle.
+The [UST Archive catalogue](https://huggingface.co/datasets/ust-archive/catalog) is pinned to revision `1ce53f412c5fa9de4ca9169dd82064ded7b7070a`, with Parquet SHA-256 `44e702edd92a3b37fb8f66907f951450fb2ee0d82edd86a7ca6dffe6e7961e34`. The 216,075-row snapshot yields 17,485 source versions in four Clear Water Bay semesters. Newest-version selection and inactive-record removal yield **12,476 course–semester records**. The default semester is 2026–27 Fall; the other semesters are 2025–26 Summer, Spring, and Winter.
 
-The script keeps code, title, department, term, credits, description, prerequisite, corequisite, exclusion, and career type. It writes term files to `src/data/generated/` and a manifest with semester labels, departments, counts, and available terms per course code. The latest supplied term, **2026–27 Fall**, is selected initially.
+A record's identity is **term code + course code**, for example `2610:COMP 2011`. All existing displayed fields are preserved, verified by reconstructing every record against a fixed baseline digest. Identity/status/time fields are validated before version selection; course content is validated after selection. Conflicting newest records with equal timestamps fail with their key. Optional null text becomes empty text; invalid credits fail.
 
-A course record is identified by **term code + course code**. Source `id` values repeat across terms, but this pair is unique within the selected Clear Water Bay records. For example, `2610:COMP 2011` and `2530:COMP 2011` are different records.
+The runtime catalogue separates small summaries from long details:
 
-## Behaviour and decisions
+- Four semester summary files contain code, title, department, credits, detail ID, and prerequisite metadata.
+- Identical descriptions, prerequisite wording, corequisites, exclusions, career type, and extracted references share one detail payload. Changed semester-specific text creates a different payload.
+- 3,375 payloads are sorted deterministically and stored in **14 chunks of up to 256**. Integer IDs are internal to the snapshot and never appear in routes.
+- The manifest stores semester names, departments, counts, provenance hashes, and available semesters per course code. Literal generated `require()` paths work with Metro.
+- The quality report records exclusions, duplicate versions, inactive records, unresolved references, and exact artifact sizes. `check:data` also detects stale extra files.
 
-- The list uses `FlatList` so the app does not mount every course row at once. It displays code, title, and credits; the detail route shows longer fields.
-- Search ignores case and spaces. `comp2011` matches `COMP 2011`. Department filtering and search both apply to the selected semester. A department that does not exist in a newly selected semester resets to All.
-- The original prerequisite text remains visible, including `AND`, `OR`, alternatives, and other conditions. The explorer extracts linked course codes but does not claim to interpret those conditions.
-- A linked prerequisite uses the viewed semester when present. Otherwise it opens the most recent supplied semester for that code and labels the fallback. If the code is absent, the explorer explains that it is unavailable.
-- Each expanded branch tracks its own visited course records. A cycle stops that branch, while the same course can still appear in a different branch. Expansion is user driven, so a deep graph is not rendered all at once.
-- Course-code extraction uses prefixes present in the supplied catalogue. This avoids treating phrases such as “from 2022” as course codes. A reference with a prefix absent from the catalogue remains readable in the original text but cannot become a link. The app does not parse shorthand such as “COMP 1023 or 1028” into a second link.
-- State lives on the list screen. There is no backend, login, global state library, or network request for catalogue data.
+Runtime catalogue JSON fell from **8,905,361 to 4,571,967 bytes (48.7%)**, exceeding the 40% target. This metric includes summaries, details, and manifest; it excludes build-only quality metadata and TypeScript loader code.
 
-## Validation status
+Each semester's first access builds a course-code map, department candidates, and normalized searchable strings. Exact lookup is expected O(1); search scans only that department's summaries. List-only browsing never calls detail loaders. The list uses `FlatList`, stable identities, and memoized results, with variable row height for wrapping and larger text.
 
-On 2026-09-27, six pure-function tests, TypeScript, Expo lint, web export, and iOS JavaScript bundling passed. Regenerating the data produced no changes. A fresh local clone passed `npm ci`, tests, typecheck, and lint. The browser preview was manually checked for the real Fall list, code search, semester/department controls, empty state, course details, direct/recursive prerequisites, semester fallback, unavailable references, and a missing detail route.
+All chunks still ship with the app. Static `require()` is synchronous, and Metro may retain accessed modules. There is no LRU eviction claim, network chunk download, or claim that only one semester occupies total process memory. The web bundle became smaller, while native Hermes exports became about 2% larger; see the measured table in [validation](docs/validation.md).
 
-**iOS Simulator interaction has not been tested yet.** This Mac currently has Command Line Tools but no Xcode or `simctl`. Xcode and an iOS Simulator runtime must be installed before claiming native UX verification. The bundle export confirms the JavaScript can be compiled for iOS; it does not replace a simulator run. No measured native scrolling or tap performance claim is made.
+## Search, prerequisites, and mobile interactions
+
+Search uppercases and removes whitespace from code/title/query, then applies substring matching. `comp2011` matches `COMP 2011`; title search works too. Semester, department, and query intersect. An unavailable department resets to All when switching semesters. Back through the app stack preserves list state.
+
+Prerequisites retain their original wording as the authority. Generated links recognize known prefixes case-insensitively, unknown uppercase four-letter prefixes (such as `CORE`), and immediate slash/comma/AND/OR shorthand: `LIFS 2040/2210` links both courses. Prose words such as FROM/YEAR and numeric ranges are not expanded. This is a small reference scanner, not eligibility evaluation or a complete natural-language parser.
+
+Expanded trees prefer the root's viewed semester throughout. A missing course uses the newest supplied semester with a visible fallback label, or appears as an unavailable, non-navigable row. Each branch owns its visited set, so cycles stop without hiding shared sibling dependencies. Collapsed nodes use summaries; expanding a node loads its detail chunk. Expansion buttons expose accessibility state.
+
+Catalogue and picker lists retain handled taps while the keyboard is open, dismiss on drag, and explicitly dismiss on selection. The picker uses iOS keyboard avoidance and Android resize, a scrollable option list, a 44-point Close target, and a no-match message. Unknown routes show “Course not found”; corrupt generated data goes to a separate controlled error screen.
+
+## Validation and remaining work
+
+31 automated tests pass, together with data consistency, TypeScript, lint, Expo Doctor, and all-platform exports. Browser flows and focused iOS Expo Go interactions were checked, including single-tap result/picker selection with the software keyboard visible. These checks do not complete standalone, Android, accessibility, or device-performance acceptance. [Validation details and the remaining checklist](docs/validation.md) distinguish each boundary.
+
+`eas.json` supplies internal preview profiles. When EAS access is available:
+
+```bash
+npx eas-cli@latest login
+npx eas-cli@latest build --profile preview --platform ios
+npx eas-cli@latest build --profile preview --platform android
+```
+
+The iOS profile builds for Simulator; Android produces an APK. EAS currently reports “Not logged in.” Standalone offline and Android checks remain **pending by user decision**. No native projects are checked in or edited manually.
 
 ## Submission
 
-No Git remote is configured in this local repository yet. Publish it to a repository accessible to reviewers, then submit that URL through the test form. Before submitting, run the verification commands and perform the native simulator flow described above. The large source file and generated files are intentionally committed so a reviewer can reproduce the data preparation and run the app offline.
+The source, generated runtime artifacts, pinned snapshot/extracted JSON, scripts, npm lockfile, Python requirements, and documentation form the local submission package. No Git repository destination or visibility has been chosen, so publication and fresh-remote-clone verification remain pending. Once configured, publish the exact verified commit to a reviewer-accessible repository and submit its URL. Do not claim all-platform acceptance until the pending validation checklist is completed.

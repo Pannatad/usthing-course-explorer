@@ -1,0 +1,19 @@
+{
+  "records": 12476,
+  "fields": [
+    "careerType",
+    "code",
+    "corequisite",
+    "department",
+    "description",
+    "exclusion",
+    "maxCredits",
+    "minCredits",
+    "prerequisite",
+    "termCode",
+    "termName",
+    "title"
+  ],
+  "displayedFieldsSha256": "0b85567ad40b4bc69dac31bfec7050c3dd007cd4f090cfe6f6e60f5a5942fc40",
+  "jsonBytes": 8905361
+}
