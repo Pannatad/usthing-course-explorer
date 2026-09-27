@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { FlatList, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { colors } from '@/theme';
 
@@ -18,6 +18,8 @@ export function OptionPicker({ label, value, options, onChange }: Props) {
   const selected = options.find((option) => option.value === value);
   const matchingOptions = options.filter((option) => option.label.toUpperCase().includes(query.trim().toUpperCase()));
 
+  function close() { Keyboard.dismiss(); setVisible(false); }
+
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
@@ -29,12 +31,12 @@ export function OptionPicker({ label, value, options, onChange }: Props) {
         <Text style={styles.triggerText} numberOfLines={1}>{selected?.label ?? value}</Text>
         <Text style={styles.chevron}>⌄</Text>
       </Pressable>
-      <Modal visible={visible} transparent animationType="fade" onRequestClose={() => setVisible(false)}>
-        <View style={styles.overlay}>
+      <Modal visible={visible} transparent animationType="fade" onRequestClose={close}>
+        <KeyboardAvoidingView style={styles.overlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <View style={styles.dialog}>
             <View style={styles.heading}>
               <Text style={styles.headingText}>Choose {label.toLowerCase()}</Text>
-              <Pressable accessibilityRole="button" accessibilityLabel="Close options" onPress={() => setVisible(false)}>
+              <Pressable accessibilityRole="button" accessibilityLabel="Close options" onPress={close}>
                 <Text style={styles.close}>Close</Text>
               </Pressable>
             </View>
@@ -49,20 +51,23 @@ export function OptionPicker({ label, value, options, onChange }: Props) {
               />
             )}
             <FlatList
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
+              ListEmptyComponent={<Text style={styles.empty}>No {label.toLowerCase() === 'department' ? 'departments' : 'semesters'} match.</Text>}
               data={matchingOptions}
               keyExtractor={(option) => option.value}
               renderItem={({ item }) => (
                 <Pressable
                   accessibilityRole="button"
                   accessibilityState={{ selected: item.value === value }}
-                  onPress={() => { onChange(item.value); setVisible(false); }}
+                  onPress={() => { onChange(item.value); close(); }}
                   style={[styles.option, item.value === value && styles.activeOption]}>
                   <Text style={[styles.optionText, item.value === value && styles.activeText]}>{item.label}</Text>
                 </Pressable>
               )}
             />
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
@@ -78,7 +83,8 @@ const styles = StyleSheet.create({
   dialog: { backgroundColor: colors.surface, borderRadius: 16, alignSelf: 'center', width: '100%', maxWidth: 500, maxHeight: '75%', padding: 16 },
   heading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 10 },
   headingText: { color: colors.text, fontSize: 18, fontWeight: '700' },
-  close: { color: colors.accent, fontSize: 15, fontWeight: '600', padding: 8 },
+  close: { minHeight: 44, minWidth: 44, textAlignVertical: 'center', color: colors.accent, fontSize: 15, fontWeight: '600', padding: 8 },
+  empty: { color: colors.secondaryText, padding: 16 },
   search: { minHeight: 44, borderColor: colors.border, borderWidth: 1, borderRadius: 8, color: colors.text, paddingHorizontal: 12, marginBottom: 8 },
   option: { minHeight: 48, justifyContent: 'center', paddingHorizontal: 14, borderRadius: 8 },
   activeOption: { backgroundColor: colors.courseSurface },
