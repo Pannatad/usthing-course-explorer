@@ -1,25 +1,22 @@
-import { getAvailableTermsForCourse, getCourse, knownCoursePrefixes } from './catalog';
-import { courseKey, type Course } from './course';
+import { catalog } from './catalog';
+import { courseKey, type CourseSummary } from './course';
+import type { CatalogRepository } from './repository';
 
-// Extract links only. The original text remains authoritative for AND/OR logic.
-export function extractCourseCodes(text: string) {
-  const matches = text.toUpperCase().matchAll(/\b([A-Z]{4})\s*(\d{4}[A-Z]?)\b/g);
-  return [...new Set([...matches]
-    .filter((match) => knownCoursePrefixes.has(match[1]))
-    .map((match) => `${match[1]} ${match[2]}`))];
+export type PrerequisiteResolution =
+  | { status: 'found'; summary: CourseSummary; usedFallback: boolean; requestedTermCode: string }
+  | { status: 'unavailable'; code: string };
+
+export function resolvePrerequisite(code: string, preferredTermCode: string, repository: CatalogRepository = catalog): PrerequisiteResolution {
+  const sameTerm = repository.getCourseSummary(preferredTermCode, code);
+  const latestTerm = repository.getAvailableTermsForCourse(code)[0];
+  const summary = sameTerm ?? (latestTerm ? repository.getCourseSummary(latestTerm, code) : undefined);
+  return summary
+    ? { status: 'found', summary, usedFallback: summary.termCode !== preferredTermCode, requestedTermCode: preferredTermCode }
+    : { status: 'unavailable', code };
 }
-
-export function resolvePrerequisite(code: string, preferredTermCode: string) {
-  const sameTerm = getCourse(preferredTermCode, code);
-  if (sameTerm) return sameTerm;
-  const latestTerm = getAvailableTermsForCourse(code)[0];
-  return latestTerm ? getCourse(latestTerm, code) : undefined;
-}
-
-export function isAlreadyInPath(course: Course, path: ReadonlySet<string>) {
+export function isAlreadyInPath(course: Pick<CourseSummary, 'termCode' | 'code'>, path: ReadonlySet<string>) {
   return path.has(courseKey(course));
 }
-
-export function extendPath(course: Course, path: ReadonlySet<string>) {
+export function extendPath(course: Pick<CourseSummary, 'termCode' | 'code'>, path: ReadonlySet<string>) {
   return new Set([...path, courseKey(course)]);
 }

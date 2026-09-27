@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 2,
+  "terms": ["2610", "2540", "2530", "2520"],
+  "campus": "MAIN",
+  "revision": "1ce53f412c5fa9de4ca9169dd82064ded7b7070a",
+  "parquetSha256": "44e702edd92a3b37fb8f66907f951450fb2ee0d82edd86a7ca6dffe6e7961e34",
+  "detailChunkSize": 256,
+  "baselineJsonBytes": 8905361,
+  "minimumReduction": 0.4
+}
