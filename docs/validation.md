@@ -4,7 +4,7 @@ This record separates automated correctness, observed development UX, and uncomp
 
 ## Environment
 
-- macOS host: Apple M5 Pro, arm64; Node 22.22.3.
+- macOS host: Apple M5 Pro, arm64; baseline/host benchmark on Node 22.22.3; clean-clone verification on Node 24.19.0.
 - App: Expo 57.0.25, React Native 0.86.3, React 19.2.3, Expo Router 57.0.23.
 - Native smoke test: Xcode 26.4.1, iPhone 17 Pro Simulator, iOS 26.4 (23E244), Expo Go development session via Metro on port 8082.
 - Web: Codex in-app Chromium browser against the same Metro server.
@@ -24,6 +24,10 @@ This record separates automated correctness, observed development UX, and uncomp
 The build report contains 17,485 selected source versions, 4,938 duplicate versions, 71 inactive latest records, 12,476 active identities, 3,375 unique detail payloads, and 229 unresolved prerequisite occurrences. Campus/term exclusions in that report are zero because the importer already filtered the full 216,075-row Parquet source. An unresolved occurrence is a reference absent from the supplied scope, not proof that the source is wrong.
 
 `npm audit --omit=dev --audit-level=high` passed the high-severity threshold, but reported 14 moderate transitive advisories in the Expo/Router tree. They are not represented as fixed; avoid breaking SDK versions with a forced audit update. Recheck upstream compatible fixes before release.
+
+## Clean local clone
+
+Candidate `17a4be3` was cloned into a new temporary directory without sharing `node_modules`. On Node 24.19.0, `npm ci`, `check:data`, all 31 tests, typecheck, Expo lint, Expo Doctor (21/21), all-platform export, and `git diff --check` passed. The clone remained clean. Subsequent changes only add this verification record, clarify supported Node versions, and pin `.nvmrc`; they do not alter application code, data, or dependencies. The final clone is checked against the final local commit. Remote-clone validation remains pending because there is no remote.
 
 ## Size measurements
 

@@ -6,7 +6,7 @@ The blue header and soft blue rows follow the supplied USThing screenshots. [PRO
 
 ## Run
 
-Use Node.js 22.13 or newer (verified with 22.22.3):
+Use a supported Node.js LTS release: 22.13+ or 24.x (verified with 22.22.3 and 24.19.0). `.nvmrc` pins the original measurement environment; Node 25 is outside Vitest 5's supported range:
 
 ```bash
 npm ci
