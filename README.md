@@ -19,6 +19,8 @@ For an iOS Simulator after installing a compatible Xcode and simulator runtime:
 npm run ios
 ```
 
+On the current macOS 26.3.2 machine, download **Xcode 26.4.1** from [Apple Developer Downloads](https://developer.apple.com/download/all/?q=Xcode%2026.4.1) after signing in with an Apple Account. Open the downloaded archive, move Xcode to Applications, launch it, and install an iOS Simulator runtime during first-run setup. In Xcode Settings → Locations, choose this Xcode in **Command Line Tools**. Check `xcrun simctl list devices` before running `npm run ios`. [Expo SDK 57](https://docs.expo.dev/versions/latest/) needs Xcode 26.4 or newer; [Apple's requirements](https://developer.apple.com/xcode/system-requirements) list Xcode 26.4.1 as compatible with macOS 26.2–26.x.
+
 The project uses Expo Router and Expo SDK 57. A development server URL appears in Terminal. Edit a screen, save it, and Expo refreshes the preview. The browser is useful for fast feedback, but native validation still requires a simulator or device.
 
 ## Verify and regenerate data
