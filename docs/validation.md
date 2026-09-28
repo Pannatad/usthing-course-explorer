@@ -1,6 +1,6 @@
 # Validation record — 2026-09-27
 
-This record separates automated correctness, observed development UX, and uncompleted release acceptance. Android and standalone checks are pending by user decision; the repository destination is not set up.
+This record separates automated correctness, observed development UX, and uncompleted release acceptance. Android and standalone checks are pending by user decision. The source is published in a public GitHub repository.
 
 ## Environment
 
@@ -27,7 +27,9 @@ The build report contains 17,485 selected source versions, 4,938 duplicate versi
 
 ## Clean local clone
 
-Candidate `17a4be3` was cloned into a new temporary directory without sharing `node_modules`. On Node 24.19.0, `npm ci`, `check:data`, all 31 tests, typecheck, Expo lint, Expo Doctor (21/21), all-platform export, and `git diff --check` passed. The clone remained clean. Subsequent changes only add this verification record, clarify supported Node versions, and pin `.nvmrc`; they do not alter application code, data, or dependencies. The final clone is checked against the final local commit. Remote-clone validation remains pending because there is no remote.
+Candidate `17a4be3` was cloned into a new temporary directory without sharing `node_modules`. On Node 24.19.0, `npm ci`, `check:data`, all 31 tests, typecheck, Expo lint, Expo Doctor (21/21), all-platform export, and `git diff --check` passed. The clone remained clean. Subsequent changes added only this verification record, clarified supported Node versions, and pinned `.nvmrc`; they did not alter application code, data, or dependencies.
+
+The public [GitHub repository](https://github.com/Pannatad/usthing-course-explorer) was created on 2026-09-28. Remote `main` matched local commit `ff58a48`. A fresh clone of that remote commit passed `npm ci`, `check:data`, all 31 tests, typecheck, Expo lint, and `git diff --check` on Node 24.19.0. This publication note is the only subsequent committed change; no uncommitted local feature work was included in the push.
 
 ## Size measurements
 
@@ -83,6 +85,6 @@ Mocked screen tests do not prove native keyboard behavior. A web preview also do
 2. Run the complete catalogue/search/filter/back/four-semester/LIFS 4060 flow on both standalone platforms. Repeat with network disabled. Android has not been interaction-tested.
 3. On native, verify title search, unavailable/fallback/cyclic cases, no-prerequisite courses, long list/branch scrolling, small screens, enlarged system text, picker Close reachability, and keyboard drag dismissal. Fixture tests cover the graph cases but do not replace device UX checks.
 4. On the same named device/build mode, measure five cold launches (median/max), at least 50 search/filter operations (median/p95), first/repeated term and detail access, and memory over twenty browse/detail/back cycles. Record loaded chunks separately from process memory. Targets: search p95 <50 ms, updates usually <150 ms, no visible stalls/blank flashes/lost taps, no continued application-cache growth for a fixed warmed working set.
-5. Choose repository URL and visibility, push the exact verified local state, repeat installation/checks from a fresh remote clone, and submit that repository URL. No remote publication has occurred.
+5. Submit the [public repository URL](https://github.com/Pannatad/usthing-course-explorer) through the technical-test form after completing the required checks. The repository is published and its original code state passed fresh remote-clone verification; form submission has not occurred.
 
 The implementation is ready for these checks, but overall all-platform/submission acceptance is not claimed complete.

@@ -108,4 +108,4 @@ The iOS profile builds for Simulator; Android produces an APK. EAS currently rep
 
 ## Submission
 
-The source, generated runtime artifacts, pinned snapshot/extracted JSON, scripts, npm lockfile, Python requirements, and documentation form the local submission package. No Git repository destination or visibility has been chosen, so publication and fresh-remote-clone verification remain pending. Once configured, publish the exact verified commit to a reviewer-accessible repository and submit its URL. Do not claim all-platform acceptance until the pending validation checklist is completed.
+The source, generated runtime artifacts, pinned snapshot/extracted JSON, scripts, npm lockfile, Python requirements, and documentation are published at [Pannatad/usthing-course-explorer](https://github.com/Pannatad/usthing-course-explorer), a public repository. The published `main` branch was installed and checked from a fresh remote clone. Use that repository URL for the technical-test submission. Android and standalone acceptance remain pending as described in [validation](docs/validation.md).
