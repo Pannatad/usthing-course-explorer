@@ -13,6 +13,15 @@ export type CatalogLoaders = {
   summaries: Record<string, () => readonly CourseSummary[]>;
   details: Record<number, () => readonly CourseDetailPayload[]>;
 };
+/** Every condition intersects; omitted optional filters match all courses. */
+export type CourseSearchFilters = {
+  termCode: string;
+  department: string;
+  query: string;
+  subject?: string;
+  numberAbove?: number;
+  credits?: CreditFilter;
+};
 export class CatalogIntegrityError extends Error {
   constructor(message: string) { super(message); this.name = 'CatalogIntegrityError'; }
 }
@@ -83,7 +92,7 @@ export function createCatalogRepository(manifest: Manifest, loaders: CatalogLoad
     getCourseSummary,
     getCourseDetails,
     getAvailableTermsForCourse: (code: string) => availableTerms.get(compactCourseCode(code)) ?? [],
-    searchCourses: ({ termCode, department, query, subject, numberAbove, credits }: { termCode: string; department: string; query: string; subject?: string; numberAbove?: number; credits?: CreditFilter }) => {
+    searchCourses: ({ termCode, department, query, subject, numberAbove, credits }: CourseSearchFilters) => {
       const data = termData(termCode);
       if (!data) return empty;
       const normalized = normalizeSearch(query);

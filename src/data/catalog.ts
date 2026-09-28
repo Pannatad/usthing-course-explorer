@@ -7,4 +7,4 @@ export const { getTerms, getCourseSummaries, getCourseSummary, getCourseDetails,
 export const terms = getTerms();
 export const defaultTerm = terms[0];
 export { compactCourseCode } from './repository';
-export type { Term } from './repository';
+export type { CourseSearchFilters, Term } from './repository';

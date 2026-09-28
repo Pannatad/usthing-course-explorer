@@ -1,10 +1,11 @@
 import { colors } from '@/theme';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { isValidCourseNumber } from '@/data/search';
 import { OptionPicker } from './OptionPicker';
 
 type Props = { subject: string; subjects: string[]; number: string; onSubjectChange: (value: string) => void; onNumberChange: (value: string) => void };
 export function CourseNumberFilter({ subject, subjects, number, onSubjectChange, onNumberChange }: Props) {
-  const invalid = !!number && (!/^\d+$/.test(number) || !Number.isSafeInteger(Number(number)));
+  const invalid = !isValidCourseNumber(number);
   return <View style={styles.group}>
     <View style={styles.row}>
       <OptionPicker label="Subject" value={subject} options={[{ value: 'All', label: 'All subjects' }, ...subjects.map(value => ({ value, label: value }))]} onChange={onSubjectChange} />

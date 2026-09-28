@@ -4,6 +4,11 @@ export function normalizeSearch(value: string) {
 
 export type CreditFilter = { comparison: 'exact' | 'greater' | 'lower'; value: number };
 
+/** An empty value means "no number filter"; anything else must be a safe whole number. */
+export function isValidCourseNumber(value: string) {
+  return !value || (/^\d+$/.test(value) && Number.isSafeInteger(Number(value)));
+}
+
 export function parseCourseCode(code: string) {
   const match = /^([A-Z]+)(\d+)[A-Z-]*$/.exec(normalizeSearch(code));
   return match ? { subject: match[1], number: Number(match[2]) } : undefined;
