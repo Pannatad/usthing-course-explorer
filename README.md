@@ -1,6 +1,6 @@
 # HKUST Course Explorer
 
-An offline React Native / Expo app for the [USThing App Team 2026-27 Fall technical test](https://simplistic-plough-ea3.notion.site/App-Team-2026-27-Fall-Technical-Test-Guideline-3dfcd8c4d00080d48650c130cc5f328d). Browse Clear Water Bay courses by semester and department, search by code or title, read course details, and explore prerequisites recursively.
+An offline React Native / Expo app for the [USThing App Team 2026-27 Fall technical test](https://simplistic-plough-ea3.notion.site/App-Team-2026-27-Fall-Technical-Test-Guideline-3dfcd8c4d00080d48650c130cc5f328d). Browse courses by semester and department, search by code or title, read course details, and explore prerequisites.
 
 <p align="center">
   <img src="screenshots/catalogue.png" alt="Course catalogue with search and filters" width="260">
@@ -26,7 +26,7 @@ npm run android   # Android emulator or device
 ## Test
 
 ```bash
-npm test              # 27 data tests (Vitest), then 20 screen tests (Jest)
+npm test              # 28 data tests (Vitest), then 21 screen tests (Jest)
 npm run typecheck     # TypeScript
 npm run lint          # Expo ESLint config
 npm run check:data    # rebuild the catalogue in a temp folder and confirm committed files match
@@ -98,6 +98,7 @@ Run `npm run prepare:data` to regenerate. `npm run check:data` confirms the comm
 
 - A semester's summaries are indexed on first use: a code-to-course map, per-department lists, and normalized search strings (uppercase, spaces removed).
 - Search is a substring match on normalized code and title. Exact lookup is a map access.
+- Within a department, undergraduate courses are listed before postgraduate ones, each in course-code order. A department can mix subjects (for example ARIN and COMP), so code order alone would put some postgraduate courses first.
 - All filters intersect: semester, department, text, subject, course number (strictly greater than), and credits. Variable-credit courses match "exactly N" when N is inside their range.
 - An invalid course number shows a hint and no results rather than being ignored.
 - Changing semester or department clears a department or subject that no longer applies.
@@ -116,4 +117,4 @@ Run `npm run prepare:data` to regenerate. `npm run check:data` confirms the comm
 - All catalogue chunks ship in the app bundle; chunking limits what is parsed, not what is installed.
 - Native startup, memory, and scrolling performance have not been measured on a device.
 - Favorites are saved per device and are not synced. Comparison selections are not saved after leaving the screen.
-- Known issue: if device storage fails to load favorites, the app shows an error but still allows changes, which could overwrite previously saved favorites.
+- If saved favorites cannot be loaded, the app shows a message and keeps favorites read-only, so nothing previously saved is overwritten.

@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { SearchField } from '@/components/SearchField';
+import type { FavoritesError } from '@/features/favorites/FavoritesProvider';
 import { colors } from '@/theme';
 
 type Props = {
@@ -13,7 +14,7 @@ type Props = {
   onQueryChange: (query: string) => void;
   favoritesOnly: boolean;
   favoritesReady: boolean;
-  favoritesError: boolean;
+  favoritesError: FavoritesError;
   onToggleFavoritesOnly: () => void;
   /** Filter controls, rendered between the favorites control and the result count. */
   children: ReactNode;
@@ -48,7 +49,11 @@ export function CatalogHeader({
         </Text>
       </Pressable>
       {favoritesError && (
-        <Text style={styles.storageError}>Favorites could not be saved on this device.</Text>
+        <Text style={styles.storageError}>
+          {favoritesError === 'load'
+            ? 'Saved favorites could not be loaded, so they cannot be changed right now.'
+            : 'Favorites could not be saved on this device.'}
+        </Text>
       )}
       {children}
       <Text style={styles.count}>

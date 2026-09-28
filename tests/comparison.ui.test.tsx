@@ -1,5 +1,5 @@
 import { describe, expect, it, jest } from '@jest/globals';
-import { fireEvent, renderRouter, screen, testRouter, waitFor } from 'expo-router/testing-library';
+import { act, fireEvent, renderRouter, screen, testRouter, waitFor } from 'expo-router/testing-library';
 import { render } from '@testing-library/react-native';
 import Compare from '../src/app/compare';
 import Home from '../src/app/index';
@@ -56,6 +56,7 @@ describe('two-course comparison', () => {
 
   it('opens from a detail screen with that course selected and preserves comparison on back', async () => {
     const result = renderRouter({ _layout: Layout, index: Home, compare: Compare, 'course/[termCode]/[courseCode]': Details }, { initialUrl: '/course/2610/COMP2011' });
+    await act(async () => {});
     fireEvent.press(screen.getByText('Compare with another course →'));
     await waitFor(() => expect(result.getPathname()).toBe('/compare'));
     expect(screen.getByText('Programming with C++')).toBeTruthy();

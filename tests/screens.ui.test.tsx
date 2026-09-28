@@ -1,5 +1,5 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
-import { renderRouter, screen, fireEvent, testRouter, waitFor } from 'expo-router/testing-library';
+import { act, renderRouter, screen, fireEvent, testRouter, waitFor } from 'expo-router/testing-library';
 import { render } from '@testing-library/react-native';
 import { Keyboard } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -17,7 +17,12 @@ jest.mock('../src/data/catalog',()=>{
   const catalog=makeFixtureCatalog();
   return {catalog,...catalog,getCourseDetails:(term:string,code:string)=>catalog.getCourseDetails(term,code),compactCourseCode,terms:catalog.getTerms(),defaultTerm:catalog.getTerms()[0]};
 });
-const mount=(initialUrl='/')=>renderRouter({_layout:Layout,index:Home,compare:Compare,'course/[termCode]/[courseCode]':Details},{initialUrl});
+// Waits for saved favorites to finish loading so the async state update happens inside act().
+const mount=async(initialUrl='/')=>{
+  const result=renderRouter({_layout:Layout,index:Home,compare:Compare,'course/[termCode]/[courseCode]':Details},{initialUrl});
+  await act(async()=>{});
+  return result;
+};
 const search=(query:string)=>fireEvent.changeText(screen.getByLabelText('Search by course code or title'),query);
 const select=(label:string,current:string,next:string)=>{
   fireEvent.press(screen.getByLabelText(`${label}: ${current}`));
@@ -27,7 +32,7 @@ beforeEach(async()=>{ jest.clearAllMocks(); await AsyncStorage.clear(); });
 
 describe('course discovery and navigation',()=>{
   it('saves from details and marks only favorited course cards',async()=>{
-    const result=mount();
+    const result=await mount();
     expect(screen.queryByLabelText('Add COMP 2011 to favorites')).toBeNull();
     expect(screen.queryByLabelText('Favorite course')).toBeNull();
     fireEvent.press(screen.getByLabelText('Open COMP 2011, Programming with C++'));
@@ -51,18 +56,30 @@ describe('course discovery and navigation',()=>{
     await waitFor(async()=>expect(await AsyncStorage.getItem('favorite-course-codes-v1')).toBe('[]'));
   });
   it('restores saved hearts when the explorer mounts again',async()=>{
-    const first=mount();
+    const first=await mount();
     fireEvent.press(screen.getByLabelText('Open COMP 2011, Programming with C++'));
     await waitFor(()=>expect(first.getPathname()).toBe('/course/2610/COMP2011'));
     await waitFor(()=>expect(screen.getByLabelText('Add COMP 2011 to favorites').props.accessibilityState.disabled).toBe(false));
     fireEvent.press(screen.getByLabelText('Add COMP 2011 to favorites'));
     await waitFor(async()=>expect(await AsyncStorage.getItem('favorite-course-codes-v1')).toBe('["COMP2011"]'));
     first.unmount();
-    mount();
+    await mount();
     await waitFor(()=>expect(screen.getByLabelText('Favorite course')).toBeTruthy());
   });
+  it('keeps favorites read-only when saved favorites cannot be loaded',async()=>{
+    jest.mocked(AsyncStorage.getItem).mockRejectedValueOnce(new Error('storage unavailable'));
+    await mount();
+    expect(screen.getByText('Saved favorites could not be loaded, so they cannot be changed right now.')).toBeTruthy();
+    expect(screen.getByLabelText('Show favorite courses only').props.accessibilityState.disabled).toBe(true);
+    fireEvent.press(screen.getByLabelText('Open COMP 2011, Programming with C++'));
+    await waitFor(()=>expect(screen.getByLabelText('Add COMP 2011 to favorites')).toBeTruthy());
+    const heart=screen.getByLabelText('Add COMP 2011 to favorites');
+    expect(heart.props.accessibilityState.disabled).toBe(true);
+    fireEvent.press(heart);
+    expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+  });
   it('combines and clears new filters, preserves them on back, and validates number input', async()=>{
-    const result=mount();
+    const result=await mount();
     expect(screen.queryByLabelText('Subject: All subjects')).toBeNull();
     const expand = screen.getByLabelText('Show additional filters');
     expect(expand.props.accessibilityState).toEqual({expanded:false});
@@ -105,7 +122,7 @@ describe('course discovery and navigation',()=>{
   });
 
   it('searches code/title and returns from details with filters intact',async()=>{
-    const result=mount();search('comp2011');
+    const result=await mount();search('comp2011');
     expect(screen.getByText('1 course in 2026-27 Fall')).toBeTruthy();
     search('programming with c++');
     select('Department','All departments','CSE');
@@ -116,16 +133,16 @@ describe('course discovery and navigation',()=>{
     expect(screen.getByDisplayValue('programming with c++')).toBeTruthy();
     expect(screen.getByLabelText('Department: CSE')).toBeTruthy();
   });
-  it('combines filters and resets an unavailable department when changing semesters',()=>{
-    mount();search('comp2011');select('Department','All departments','MATH');
+  it('combines filters and resets an unavailable department when changing semesters',async()=>{
+    await mount();search('comp2011');select('Department','All departments','MATH');
     expect(screen.getByText(/No courses match these filters/)).toBeTruthy();
     fireEvent.press(screen.getByLabelText('Clear search'));
     select('Semester','2026-27 Fall','2025-26 Summer');
     expect(screen.getByLabelText('Department: All departments')).toBeTruthy();
     expect(screen.getByText('1 course in 2025-26 Summer')).toBeTruthy();
   });
-  it('offers subjects in the selected department and clears an incompatible subject',()=>{
-    mount();
+  it('offers subjects in the selected department and clears an incompatible subject',async()=>{
+    await mount();
     fireEvent.press(screen.getByLabelText('Show additional filters'));
     select('Subject','All subjects','MATH');
     expect(screen.getByText('1 course in 2026-27 Fall')).toBeTruthy();
@@ -136,13 +153,13 @@ describe('course discovery and navigation',()=>{
     expect(screen.getByText('COMP',{exact:true})).toBeTruthy();
     expect(screen.queryByText('MATH',{exact:true})).toBeNull();
   });
-  it('handles invalid routes and courses without prerequisites',()=>{
-    mount('/course/bogus/COMP2011');expect(screen.getByText('This course is not in the supplied Clear Water Bay catalogue.')).toBeTruthy();
+  it('handles invalid routes and courses without prerequisites',async()=>{
+    await mount('/course/bogus/COMP2011');expect(screen.getByText('This course is not in the supplied Clear Water Bay catalogue.')).toBeTruthy();
     testRouter.replace('/course/2610/COMP1023');
     expect(screen.getByText('No listed prerequisites.')).toBeTruthy();
   });
-  it('expands lazily, stops a cycle, and collapses a branch',()=>{
-    mount('/course/2610/COMP2011');
+  it('expands lazily, stops a cycle, and collapses a branch',async()=>{
+    await mount('/course/2610/COMP2011');
     expect(screen.getByText('CORE 1120')).toBeTruthy();
     expect(screen.getByText(/Course unavailable/)).toBeTruthy();
     fireEvent.press(screen.getByLabelText('Show prerequisites for COMP 1028'));
@@ -152,7 +169,7 @@ describe('course discovery and navigation',()=>{
     expect(screen.queryByText('Already visited on this path. This branch stops here.')).toBeNull();
   });
   it('navigates a fallback prerequisite to its actual semester',async()=>{
-    const result=mount('/course/2610/ACCT5430');
+    const result=await mount('/course/2610/ACCT5430');
     expect(screen.getByText('Showing 2025-26 Summer; unavailable in the viewed semester.')).toBeTruthy();
     fireEvent.press(screen.getByText('Open course details →'));
     await waitFor(()=>expect(result.getPathname()).toBe('/course/2540/ACCT5150'));

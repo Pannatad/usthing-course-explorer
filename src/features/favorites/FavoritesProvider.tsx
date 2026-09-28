@@ -5,10 +5,13 @@ import { normalizeSearch } from '@/data/search';
 
 const storageKey = 'favorite-course-codes-v1';
 
+export type FavoritesError = 'load' | 'save' | null;
+
 type FavoritesContextValue = {
   codes: ReadonlySet<string>;
+  /** True only after saved favorites loaded successfully; changes are blocked until then. */
   ready: boolean;
-  error: boolean;
+  error: FavoritesError;
   toggle: (code: string) => void;
 };
 
@@ -16,8 +19,8 @@ const FavoritesContext = createContext<FavoritesContextValue | null>(null);
 
 export function FavoritesProvider({ children }: { children: ReactNode }) {
   const [codes, setCodes] = useState<ReadonlySet<string>>(new Set());
-  const [ready, setReady] = useState(false);
-  const [error, setError] = useState(false);
+  const [status, setStatus] = useState<'loading' | 'ready' | 'loadFailed'>('loading');
+  const [saveFailed, setSaveFailed] = useState(false);
   const codesRef = useRef<ReadonlySet<string>>(new Set());
   const writeQueue = useRef(Promise.resolve());
 
@@ -30,16 +33,16 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
         typeof value === 'string' && /^[A-Z]+\d[\dA-Z-]*$/.test(value)) : []);
       codesRef.current = loaded;
       setCodes(loaded);
+      setStatus('ready');
     }).catch(() => {
-      if (active) setError(true);
-    }).finally(() => {
-      if (active) setReady(true);
+      // Stay read-only: saving now would overwrite favorites we could not read.
+      if (active) setStatus('loadFailed');
     });
     return () => { active = false; };
   }, []);
 
   function toggle(code: string) {
-    if (!ready) return;
+    if (status !== 'ready') return;
     const key = normalizeSearch(code);
     const next = new Set(codesRef.current);
     if (next.has(key)) next.delete(key);
@@ -47,10 +50,12 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
     codesRef.current = next;
     setCodes(next);
     writeQueue.current = writeQueue.current.then(() => AsyncStorage.setItem(storageKey, JSON.stringify([...next]))).catch(() => {
-      setError(true);
+      setSaveFailed(true);
     });
   }
 
+  const ready = status === 'ready';
+  const error: FavoritesError = status === 'loadFailed' ? 'load' : saveFailed ? 'save' : null;
   return <FavoritesContext.Provider value={{ codes, ready, error, toggle }}>{children}</FavoritesContext.Provider>;
 }
 
