@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { matchesCredits, parseCourseCode } from '../src/data/search';
+import { createCatalogRepository } from '../src/data/repository';
+import type { CourseSummary } from '../src/data/course';
 import { makeFixtureCatalog } from './fixture-catalog';
 
 describe('structured course filters', () => {
@@ -17,6 +19,17 @@ describe('structured course filters', () => {
     expect(repo.searchCourses({ ...filters, credits: { comparison: 'greater', value: 3 } })).toEqual([]);
     expect(repo.getDiagnostics().loadedDetailChunks).toEqual([]);
     expect(repo.searchCourses(filters)[0].careerType).toBe('UG');
+  });
+  it('lists undergraduate courses before postgraduate ones within a department', () => {
+    const course = (code: string, careerType: string): CourseSummary => ({ termCode: '2610', code, title: code, department: 'CSE', careerType, minCredits: 3, maxCredits: 3, detailId: 0, hasPrerequisite: false, prerequisiteCount: 0 });
+    const summaries = [course('ARIN 5101', 'PG'), course('COMP 1021', 'UG'), course('COMP 5111', 'PG'), course('CSIT 2011', 'UG')];
+    const repo = createCatalogRepository(
+      { schemaVersion: 2, detailChunkSize: 1, detailCount: 1, terms: [{ code: '2610', name: '2026-27 Fall', count: 4, departments: ['CSE'] }], courseTerms: {} },
+      { summaries: { '2610': () => summaries }, details: {} },
+    );
+    const codes = (department: string) => repo.searchCourses({ termCode: '2610', department, query: '' }).map((c) => c.code);
+    expect(codes('CSE')).toEqual(['COMP 1021', 'CSIT 2011', 'ARIN 5101', 'COMP 5111']);
+    expect(codes('All')).toEqual(['ARIN 5101', 'COMP 1021', 'COMP 5111', 'CSIT 2011']);
   });
   it('matches variable ranges, fractional credits, zero, and strict boundaries', () => {
     const course = { minCredits: 1, maxCredits: 4 };

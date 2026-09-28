@@ -61,6 +61,14 @@ export function createCatalogRepository(manifest: Manifest, loaders: CatalogLoad
       const group = departments.get(summary.department) ?? [];
       group.push(entry); departments.set(summary.department, group);
     }
+    // A department can mix subjects (e.g. ARIN and COMP), so code order alone can put PG before UG.
+    // List undergraduate courses first; each part keeps its code order.
+    for (const [name, group] of departments) {
+      departments.set(name, [
+        ...group.filter((entry) => entry.summary.careerType === 'UG'),
+        ...group.filter((entry) => entry.summary.careerType !== 'UG'),
+      ]);
+    }
     const data = { summaries, byCode, all, departments };
     loadedTerms.set(code, data);
     return data;
