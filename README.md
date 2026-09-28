@@ -2,6 +2,12 @@
 
 An offline React Native / Expo app for the [USThing App Team 2026-27 Fall technical test](https://simplistic-plough-ea3.notion.site/App-Team-2026-27-Fall-Technical-Test-Guideline-3dfcd8c4d00080d48650c130cc5f328d). Browse Clear Water Bay courses by semester and department, search by code or title, read course details, and explore prerequisites recursively.
 
+<p align="center">
+  <img src="screenshots/catalogue.png" alt="Course catalogue with search and filters" width="260">
+  <img src="screenshots/course-details.png" alt="Course details with favorite and prerequisites" width="260">
+  <img src="screenshots/prerequisites.png" alt="Expanded prerequisite tree" width="260">
+</p>
+
 ## Run
 
 Requires Node.js 22.13+ or 24.x and npm. No backend, API key, or Python is needed; the processed catalogue is committed.
@@ -44,7 +50,7 @@ npm run check:data    # rebuild the catalogue in a temp folder and confirm commi
 - **Course details:** description, credits, level, prerequisites, corequisites, and exclusions.
 - **Prerequisite explorer:** expand prerequisites level by level, open any of them, with safe handling of cycles.
 - **Favorites:** save a course with the heart on its detail screen, then show favorites only; kept after restarting the app.
-- **Compare two courses:** credits, level, and requirements side by side ([details](docs/course-comparison.md)).
+- **Compare two courses:** credits, level, and requirements side by side.
 - **Offline:** all data ships with the app; no network is needed.
 
 ## Architecture and state management
@@ -108,13 +114,6 @@ Run `npm run prepare:data` to regenerate. `npm run check:data` confirms the comm
 - Scope is the Clear Water Bay campus and four semesters.
 - Not yet tested on Android or on standalone (non-Expo Go) builds.
 - All catalogue chunks ship in the app bundle; chunking limits what is parsed, not what is installed.
-- Native startup, memory, and scrolling performance have not been measured on a device. Export-size figures in [docs/validation.md](docs/validation.md) are from an earlier build.
+- Native startup, memory, and scrolling performance have not been measured on a device.
 - Favorites are saved per device and are not synced. Comparison selections are not saved after leaving the screen.
 - Known issue: if device storage fails to load favorites, the app shows an error but still allows changes, which could overwrite previously saved favorites.
-
-## More documentation
-
-- [docs/validation.md](docs/validation.md): measurements and manual checks.
-- [docs/course-comparison.md](docs/course-comparison.md): comparison feature design.
-- [docs/learning-notes.md](docs/learning-notes.md): implementation notes.
-- [PRODUCT.md](PRODUCT.md) and [DESIGN.md](DESIGN.md): scope and visual design.

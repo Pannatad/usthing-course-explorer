@@ -45,3 +45,13 @@ example
 # Optional data reproduction environment
 .venv-data/
 __pycache__/
+
+# Local development, AI-assistant, and editor files (kept out of the submission)
+AGENTS.md
+CLAUDE.md
+.claude/
+.impeccable/
+.vscode/
+PRODUCT.md
+DESIGN.md
+docs/
