@@ -53,7 +53,7 @@ export function OptionPicker({ label, value, options, onChange }: Props) {
             <FlatList
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode="on-drag"
-              ListEmptyComponent={<Text style={styles.empty}>No {label.toLowerCase() === 'department' ? 'departments' : 'semesters'} match.</Text>}
+              ListEmptyComponent={<Text style={styles.empty}>No {label.toLowerCase() === 'department' ? 'departments' : label.toLowerCase() === 'semester' ? 'semesters' : 'options'} match.</Text>}
               data={matchingOptions}
               keyExtractor={(option) => option.value}
               renderItem={({ item }) => (

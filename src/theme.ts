@@ -6,6 +6,10 @@ export const colors = {
   accent: '#235596',
   courseSurface: '#E3EEFB',
   pressedSurface: '#D6E7FA',
+  postgraduateAccent: '#663782',
+  postgraduateSurface: '#F2EAF7',
+  postgraduatePressedSurface: '#EADCF2',
   searchSurface: '#F1F4F8',
   border: '#D7E2EF',
+  favorite: '#B4234B',
 } as const;

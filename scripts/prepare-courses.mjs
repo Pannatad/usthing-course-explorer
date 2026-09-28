@@ -86,7 +86,7 @@ export function prepareCourses(sourceRecords, provenance = {}) {
     names.set(c.termCode, c.termName);
     const detailId = detailIds.get(payloadFor(c));
     const summary = { termCode: c.termCode, code: c.code, department: c.department, title: c.title,
-      minCredits: c.minCredits, maxCredits: c.maxCredits, detailId,
+      minCredits: c.minCredits, maxCredits: c.maxCredits, careerType: c.careerType, detailId,
       hasPrerequisite: Boolean(c.prerequisite), prerequisiteCount: details[detailId].prerequisiteCodes.length };
     if (!coursesByTerm.has(c.termCode)) coursesByTerm.set(c.termCode, []);
     coursesByTerm.get(c.termCode).push(summary);

@@ -5,6 +5,7 @@ import { Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
 import { compactCourseCode, getCourseDetails, terms } from '@/data/catalog';
 import { courseKey, type Course } from '@/data/course';
 import { extendPath, isAlreadyInPath, resolvePrerequisite } from '@/data/prerequisites';
+import { CourseLevelBadge } from './CourseLevelBadge';
 import { colors } from '@/theme';
 
 type NodeProps = {
@@ -34,7 +35,7 @@ function PrerequisiteNode({ code, preferredTermCode, path }: NodeProps) {
 
   return (
     <View style={styles.node}>
-      <Text style={styles.nodeCode}>{course.code}</Text>
+      <View style={styles.identity}><Text style={styles.nodeCode}>{course.code}</Text><CourseLevelBadge careerType={course.careerType} /></View>
       <Text style={styles.nodeTitle}>{course.title}</Text>
       {course.termCode !== preferredTermCode && (
         <Text style={styles.hint}>Showing {terms.find((term) => term.code === course.termCode)?.name}; unavailable in the viewed semester.</Text>
@@ -59,7 +60,7 @@ function PrerequisiteNode({ code, preferredTermCode, path }: NodeProps) {
           </Pressable>
           {expanded && (
             <View style={styles.children}>
-              <Text style={styles.logic}>{detail?.prerequisite}</Text>
+              <Text style={styles.requirementLabel}>Requirement for {course.code}</Text><Text style={styles.logic}>{detail?.prerequisite}</Text>
               {references.map((reference) => (
                 <PrerequisiteNode key={reference} code={reference} preferredTermCode={preferredTermCode} path={nextPath} />
               ))}
@@ -92,15 +93,17 @@ export function PrerequisiteExplorer({ course }: { course: Course }) {
 }
 
 const styles = StyleSheet.create({
-  root: { gap: 4, marginTop: 10 },
+  root: { gap: 12, marginTop: 10 },
   intro: { color: colors.secondaryText, fontSize: 14, fontWeight: '600', marginBottom: 4 },
-  node: { borderBottomWidth: 1, borderBottomColor: colors.border, paddingVertical: 12, gap: 6 },
+  node: { borderWidth: 1, borderColor: colors.border, borderRadius: 12, padding: 12, gap: 8 },
+  identity: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 },
+  requirementLabel: { color: colors.text, fontSize: 13, fontWeight: '700' },
   nodeCode: { color: colors.accent, fontSize: 17, fontWeight: '700' },
   nodeTitle: { color: colors.text, fontSize: 15, fontWeight: '600' },
   hint: { color: colors.secondaryText, fontSize: 13, lineHeight: 20 },
   link: { color: colors.accent, fontSize: 14, fontWeight: '700', paddingVertical: 8, alignSelf: 'flex-start' },
   expandButton: { alignSelf: 'flex-start', minHeight: 44, justifyContent: 'center', backgroundColor: colors.courseSurface, borderRadius: 8, paddingHorizontal: 12 },
   expandText: { color: colors.accent, fontSize: 14, fontWeight: '700' },
-  children: { marginTop: 6, marginLeft: 14, gap: 4 },
+  children: { marginTop: 8, gap: 10 },
   logic: { color: colors.secondaryText, fontSize: 13, lineHeight: 20 },
 });

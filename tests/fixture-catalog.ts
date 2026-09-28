@@ -8,7 +8,7 @@ const details: CourseDetailPayload[] = [
   { description:'Accounting', prerequisite:'ACCT 5150',corequisite:'',exclusion:'',careerType:'PG',prerequisiteCodes:['ACCT 5150'] },
   { description:'Old accounting course', prerequisite:'',corequisite:'',exclusion:'',careerType:'PG',prerequisiteCodes:[] },
 ];
-const summary=(termCode:string,code:string,title:string,department:string,detailId:number):CourseSummary=>({termCode,code,title,department,detailId,minCredits:3,maxCredits:3,hasPrerequisite:!!details[detailId].prerequisite,prerequisiteCount:details[detailId].prerequisiteCodes.length});
+const summary=(termCode:string,code:string,title:string,department:string,detailId:number):CourseSummary=>({termCode,code,title,department,detailId,careerType:details[detailId].careerType,minCredits:3,maxCredits:3,hasPrerequisite:!!details[detailId].prerequisite,prerequisiteCount:details[detailId].prerequisiteCodes.length});
 const rows:Record<string,CourseSummary[]>={
   '2610':[
     summary('2610','ACCT 5430','Tax and Business Strategy','ACCT',4),

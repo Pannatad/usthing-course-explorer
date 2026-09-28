@@ -1,5 +1,5 @@
 import type { Course, CourseDetailPayload, CourseSummary } from './course';
-import { normalizeSearch } from './search';
+import { normalizeSearch, parseCourseCode, matchesCredits, type CreditFilter } from './search';
 
 export type Term = { code: string; name: string; count: number; departments: readonly string[] };
 export type Manifest = {
@@ -25,7 +25,7 @@ export function createCatalogRepository(manifest: Manifest, loaders: CatalogLoad
   }
   const termsByCode = new Map(manifest.terms.map((term) => [term.code, term]));
   const availableTerms = new Map(Object.entries(manifest.courseTerms).map(([code, terms]) => [compactCourseCode(code), terms]));
-  type Entry = { summary: CourseSummary; code: string; title: string };
+  type Entry = { summary: CourseSummary; code: string; title: string; parts: ReturnType<typeof parseCourseCode> };
   type TermData = { summaries: readonly CourseSummary[]; byCode: Map<string, CourseSummary>; all: Entry[]; departments: Map<string, Entry[]> };
   const loadedTerms = new Map<string, TermData>();
   const loadedDetails = new Map<number, readonly CourseDetailPayload[]>();
@@ -47,7 +47,7 @@ export function createCatalogRepository(manifest: Manifest, loaders: CatalogLoad
       const key = compactCourseCode(summary.code);
       if (summary.termCode !== code || byCode.has(key)) throw new CatalogIntegrityError(`Invalid course identity ${summary.code}`);
       byCode.set(key, summary);
-      const entry = { summary, code: key, title: normalizeSearch(summary.title) };
+      const entry = { summary, code: key, title: normalizeSearch(summary.title), parts: parseCourseCode(summary.code) };
       all.push(entry);
       const group = departments.get(summary.department) ?? [];
       group.push(entry); departments.set(summary.department, group);
@@ -83,12 +83,17 @@ export function createCatalogRepository(manifest: Manifest, loaders: CatalogLoad
     getCourseSummary,
     getCourseDetails,
     getAvailableTermsForCourse: (code: string) => availableTerms.get(compactCourseCode(code)) ?? [],
-    searchCourses: ({ termCode, department, query }: { termCode: string; department: string; query: string }) => {
+    searchCourses: ({ termCode, department, query, subject, numberAbove, credits }: { termCode: string; department: string; query: string; subject?: string; numberAbove?: number; credits?: CreditFilter }) => {
       const data = termData(termCode);
       if (!data) return empty;
       const normalized = normalizeSearch(query);
       const candidates = department === 'All' ? data.all : data.departments.get(department) ?? [];
-      return candidates.filter((entry) => !normalized || entry.code.includes(normalized) || entry.title.includes(normalized)).map((entry) => entry.summary);
+      return candidates.filter((entry) =>
+        (!normalized || entry.code.includes(normalized) || entry.title.includes(normalized)) &&
+        (!subject || subject === 'All' || entry.parts?.subject === subject) &&
+        (numberAbove === undefined || (Number.isFinite(numberAbove) && entry.parts !== undefined && entry.parts.number > numberAbove)) &&
+        matchesCredits(entry.summary, credits)
+      ).map((entry) => entry.summary);
     },
     getDiagnostics: () => ({ loadedTerms: [...loadedTerms.keys()], loadedDetailChunks: [...loadedDetails.keys()] }),
   };

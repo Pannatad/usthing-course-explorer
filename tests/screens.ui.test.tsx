@@ -2,7 +2,9 @@ import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import { renderRouter, screen, fireEvent, testRouter, waitFor } from 'expo-router/testing-library';
 import { render } from '@testing-library/react-native';
 import { Keyboard } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Home from '../src/app/index';
+import Compare from '../src/app/compare';
 import Details from '../src/app/course/[termCode]/[courseCode]';
 import Layout from '../src/app/_layout';
 import { OptionPicker } from '../src/components/OptionPicker';
@@ -15,15 +17,93 @@ jest.mock('../src/data/catalog',()=>{
   const catalog=makeFixtureCatalog();
   return {catalog,...catalog,getCourseDetails:(term:string,code:string)=>catalog.getCourseDetails(term,code),compactCourseCode,terms:catalog.getTerms(),defaultTerm:catalog.getTerms()[0]};
 });
-const mount=(initialUrl='/')=>renderRouter({_layout:Layout,index:Home,'course/[termCode]/[courseCode]':Details},{initialUrl});
+const mount=(initialUrl='/')=>renderRouter({_layout:Layout,index:Home,compare:Compare,'course/[termCode]/[courseCode]':Details},{initialUrl});
 const search=(query:string)=>fireEvent.changeText(screen.getByLabelText('Search by course code or title'),query);
 const select=(label:string,current:string,next:string)=>{
   fireEvent.press(screen.getByLabelText(`${label}: ${current}`));
-  fireEvent.press(screen.getByText(next,{exact:true}));
+  fireEvent.press(screen.getAllByText(next,{exact:true})[0]);
 };
-beforeEach(()=>{ jest.clearAllMocks(); });
+beforeEach(async()=>{ jest.clearAllMocks(); await AsyncStorage.clear(); });
 
 describe('course discovery and navigation',()=>{
+  it('saves from details and marks only favorited course cards',async()=>{
+    const result=mount();
+    expect(screen.queryByLabelText('Add COMP 2011 to favorites')).toBeNull();
+    expect(screen.queryByLabelText('Favorite course')).toBeNull();
+    fireEvent.press(screen.getByLabelText('Open COMP 2011, Programming with C++'));
+    await waitFor(()=>expect(result.getPathname()).toBe('/course/2610/COMP2011'));
+    const add=screen.getByLabelText('Add COMP 2011 to favorites');
+    await waitFor(()=>expect(add.props.accessibilityState.disabled).toBe(false));
+    fireEvent.press(add);
+    expect(screen.getByLabelText('Remove COMP 2011 from favorites')).toBeTruthy();
+    await waitFor(async()=>expect(await AsyncStorage.getItem('favorite-course-codes-v1')).toBe('["COMP2011"]'));
+    testRouter.back('/');
+    expect(screen.getAllByLabelText('Favorite course')).toHaveLength(1);
+    expect(screen.queryByLabelText('Remove COMP 2011 from favorites')).toBeNull();
+    fireEvent.press(screen.getByLabelText('Show favorite courses only'));
+    expect(screen.getByText('1 course in 2026-27 Fall')).toBeTruthy();
+    fireEvent.press(screen.getByLabelText('Open COMP 2011, Programming with C++'));
+    await waitFor(()=>expect(result.getPathname()).toBe('/course/2610/COMP2011'));
+    expect(screen.getByLabelText('Remove COMP 2011 from favorites')).toBeTruthy();
+    fireEvent.press(screen.getByLabelText('Remove COMP 2011 from favorites'));
+    testRouter.back('/');
+    expect(screen.getByText('No favorites yet. Open a course and tap its heart to save it here.')).toBeTruthy();
+    await waitFor(async()=>expect(await AsyncStorage.getItem('favorite-course-codes-v1')).toBe('[]'));
+  });
+  it('restores saved hearts when the explorer mounts again',async()=>{
+    const first=mount();
+    fireEvent.press(screen.getByLabelText('Open COMP 2011, Programming with C++'));
+    await waitFor(()=>expect(first.getPathname()).toBe('/course/2610/COMP2011'));
+    await waitFor(()=>expect(screen.getByLabelText('Add COMP 2011 to favorites').props.accessibilityState.disabled).toBe(false));
+    fireEvent.press(screen.getByLabelText('Add COMP 2011 to favorites'));
+    await waitFor(async()=>expect(await AsyncStorage.getItem('favorite-course-codes-v1')).toBe('["COMP2011"]'));
+    first.unmount();
+    mount();
+    await waitFor(()=>expect(screen.getByLabelText('Favorite course')).toBeTruthy());
+  });
+  it('combines and clears new filters, preserves them on back, and validates number input', async()=>{
+    const result=mount();
+    expect(screen.queryByLabelText('Subject: All subjects')).toBeNull();
+    const expand = screen.getByLabelText('Show additional filters');
+    expect(expand.props.accessibilityState).toEqual({expanded:false});
+    fireEvent.press(expand);
+    expect(screen.getByText('Subject')).toBeTruthy();
+    expect(screen.getByText('Credit comparison')).toBeTruthy();
+    expect(screen.getAllByLabelText('Undergraduate').length).toBeGreaterThan(0);
+    expect(screen.getAllByLabelText('Postgraduate').length).toBeGreaterThan(0);
+    select('Subject','All subjects','COMP');
+    fireEvent.changeText(screen.getByLabelText('Course number'),'2000');
+    select('Credits','Any credits','3 credits');
+    expect(screen.getByText('1 course in 2026-27 Fall')).toBeTruthy();
+    fireEvent.press(screen.getByLabelText('Hide additional filters'));
+    expect(screen.queryByLabelText('Subject: COMP')).toBeNull();
+    expect(screen.getByText('COMP · number > 2000 · = 3 credits')).toBeTruthy();
+    fireEvent.press(screen.getByLabelText('Show additional filters'));
+    fireEvent.press(screen.getByLabelText('Open COMP 2011, Programming with C++'));
+    await waitFor(()=>expect(result.getPathname()).toBe('/course/2610/COMP2011'));
+    expect(screen.getByText('Requirement')).toBeTruthy();
+    testRouter.back('/');
+    expect(screen.getByDisplayValue('2000')).toBeTruthy();
+    expect(screen.getByLabelText('Subject: COMP')).toBeTruthy();
+    expect(screen.getByLabelText('Credits: 3 credits')).toBeTruthy();
+    select('Credit comparison','Exactly','Greater than');
+    expect(screen.getByText(/No courses match/)).toBeTruthy();
+    select('Credits','3 credits','Any credits');
+    fireEvent.changeText(screen.getByLabelText('Course number'),'oops');
+    expect(screen.getByText('Enter a whole number, such as 2000.')).toBeTruthy();
+    select('Credits','Any credits','3 credits');
+    fireEvent.press(screen.getByLabelText('Clear all additional filters'));
+    expect(screen.getByLabelText('Subject: All subjects')).toBeTruthy();
+    expect(screen.getByLabelText('Course number').props.value).toBe('');
+    expect(screen.getByLabelText('Credit comparison: Exactly')).toBeTruthy();
+    expect(screen.getByLabelText('Credits: Any credits')).toBeTruthy();
+    expect(screen.queryByLabelText('Clear all additional filters')).toBeNull();
+    expect(screen.getByText('6 courses in 2026-27 Fall')).toBeTruthy();
+    select('Subject','All subjects','COMP');
+    select('Semester','2026-27 Fall','2025-26 Summer');
+    expect(screen.getByLabelText('Subject: All subjects')).toBeTruthy();
+  });
+
   it('searches code/title and returns from details with filters intact',async()=>{
     const result=mount();search('comp2011');
     expect(screen.getByText('1 course in 2026-27 Fall')).toBeTruthy();
@@ -43,6 +123,18 @@ describe('course discovery and navigation',()=>{
     select('Semester','2026-27 Fall','2025-26 Summer');
     expect(screen.getByLabelText('Department: All departments')).toBeTruthy();
     expect(screen.getByText('1 course in 2025-26 Summer')).toBeTruthy();
+  });
+  it('offers subjects in the selected department and clears an incompatible subject',()=>{
+    mount();
+    fireEvent.press(screen.getByLabelText('Show additional filters'));
+    select('Subject','All subjects','MATH');
+    expect(screen.getByText('1 course in 2026-27 Fall')).toBeTruthy();
+    select('Department','All departments','CSE');
+    expect(screen.getByLabelText('Subject: All subjects')).toBeTruthy();
+    expect(screen.getByText('4 courses in 2026-27 Fall')).toBeTruthy();
+    fireEvent.press(screen.getByLabelText('Subject: All subjects'));
+    expect(screen.getByText('COMP',{exact:true})).toBeTruthy();
+    expect(screen.queryByText('MATH',{exact:true})).toBeNull();
   });
   it('handles invalid routes and courses without prerequisites',()=>{
     mount('/course/bogus/COMP2011');expect(screen.getByText('This course is not in the supplied Clear Water Bay catalogue.')).toBeTruthy();

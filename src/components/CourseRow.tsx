@@ -3,6 +3,8 @@ import { Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { formatCredits, type CourseSummary } from '@/data/course';
 import { compactCourseCode } from '@/data/catalog';
+import { CourseLevelBadge } from './CourseLevelBadge';
+import { useFavorites } from '@/features/favorites/FavoritesProvider';
 import { colors } from '@/theme';
 
 type CourseRowProps = {
@@ -10,7 +12,11 @@ type CourseRowProps = {
 };
 
 export function CourseRow({ course }: CourseRowProps) {
+  const postgraduate = course.careerType === 'PG';
+  const { codes: favorites } = useFavorites();
+  const isFavorite = favorites.has(compactCourseCode(course.code));
   return (
+    <View style={[styles.card, postgraduate && styles.postgraduateCard]}>
     <Link
       href={{
         pathname: '/course/[termCode]/[courseCode]',
@@ -20,21 +26,22 @@ export function CourseRow({ course }: CourseRowProps) {
         },
       }}
       asChild>
-      <Pressable onPress={() => Keyboard.dismiss()} accessibilityRole="button" accessibilityLabel={`Open ${course.code}, ${course.title}`}>
+      <Pressable style={styles.courseLink} onPress={() => Keyboard.dismiss()} accessibilityRole="button" accessibilityLabel={`Open ${course.code}, ${course.title}`}>
         {({ pressed }) => (
-          <View style={[styles.card, pressed && styles.pressed]}>
+          <View style={[styles.linkContent, pressed && (postgraduate ? styles.postgraduatePressed : styles.pressed)]}>
+            {isFavorite && <Text style={styles.favoriteMark} accessibilityLabel="Favorite course">♥</Text>}
             <View style={styles.information}>
               <View style={styles.heading}>
-                <Text style={styles.code}>{course.code}</Text>
+                <View style={styles.identity}><Text style={[styles.code, postgraduate && styles.postgraduateText]}>{course.code}</Text><CourseLevelBadge careerType={course.careerType} /></View>
                 <Text style={styles.credits}>{formatCredits(course)}</Text>
               </View>
               <Text style={styles.title}>{course.title}</Text>
             </View>
-            <Text style={styles.chevron} accessibilityElementsHidden>›</Text>
           </View>
         )}
       </Pressable>
     </Link>
+    </View>
   );
 }
 
@@ -42,15 +49,17 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.courseSurface,
     borderRadius: 16,
-    paddingHorizontal: 20,
-    paddingVertical: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
+    overflow: 'hidden',
   },
+  courseLink: { width: '100%' },
+  linkContent: { paddingHorizontal: 20, paddingVertical: 18, gap: 6 },
+  favoriteMark: { color: colors.favorite, fontSize: 21, lineHeight: 24, alignSelf: 'flex-start' },
   pressed: {
     backgroundColor: colors.pressedSurface,
   },
+  postgraduateCard: { backgroundColor: colors.postgraduateSurface },
+  postgraduatePressed: { backgroundColor: colors.postgraduatePressedSurface },
+  postgraduateText: { color: colors.postgraduateAccent },
   information: { flex: 1, gap: 8 },
   heading: {
     flexDirection: 'row',
@@ -58,6 +67,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 12,
   },
+  identity: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 },
   code: {
     color: colors.accent,
     fontSize: 21,
@@ -79,5 +89,4 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     fontWeight: '500',
   },
-  chevron: { color: colors.accent, fontSize: 29, lineHeight: 30, fontWeight: '400' },
 });

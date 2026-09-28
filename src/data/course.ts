@@ -2,6 +2,7 @@ export type CourseSummary = {
   termCode: string;
   code: string;
   department: string;
+  careerType: string;
   title: string;
   minCredits: number;
   maxCredits: number;

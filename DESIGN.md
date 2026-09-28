@@ -4,6 +4,8 @@ description: Course browsing in the visual language of USThing
 colors:
   primary: "#235596"
   primary-soft: "#E3EEFB"
+  postgraduate: "#663782"
+  postgraduate-soft: "#F2EAF7"
   search-surface: "#F1F4F8"
   canvas: "#FFFFFF"
   ink: "#252525"
@@ -82,7 +84,7 @@ Place the search field first. Use a pale gray fill, dark readable placeholder, a
 
 ### Course rows
 
-Use soft blue rounded rows. Show code as the strongest text, title below, and credits as supporting metadata. Keep consistent gaps and allow long titles to wrap.
+Use soft blue rounded rows for UG courses and soft violet rows for PG courses. Show a high-contrast UG/PG badge beside the code, with the code as the strongest text, title below, and credits as supporting metadata. Keep consistent gaps and allow long titles to wrap.
 
 ### Course details and prerequisites
 

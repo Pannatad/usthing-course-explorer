@@ -3,4 +3,5 @@ module.exports = {
   testMatch: ['<rootDir>/tests/**/*.ui.test.tsx'],
   moduleNameMapper: { '^@/(.*)$': '<rootDir>/src/$1' },
   watchman: false,
+  setupFiles: ['<rootDir>/tests/jest-setup.ts'],
 };

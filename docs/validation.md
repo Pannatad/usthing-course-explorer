@@ -88,3 +88,12 @@ Mocked screen tests do not prove native keyboard behavior. A web preview also do
 5. Submit the [public repository URL](https://github.com/Pannatad/usthing-course-explorer) through the technical-test form after completing the required checks. The repository is published and its original code state passed fresh remote-clone verification; form submission has not occurred.
 
 The implementation is ready for these checks, but overall all-platform/submission acceptance is not claimed complete.
+
+## Course filters and prerequisite layout — 2026-09-28
+
+- Added source-backed UG/PG summary metadata, subject and strict course-number filters, and exact/greater-than credit filters. Variable-credit matches use the inclusive source range for exact values and the maximum for greater-than conditions.
+- Added separate requirement and referenced-course containers, retaining source wording, lazy expansion, fallback notices, and cycle protection.
+- Passed 27 data tests and 8 UI tests, Expo lint, TypeScript, generated-data consistency, and diff whitespace checks. New checks cover numeric boundaries, suffix codes, fractional/zero/variable credits, combined filters, clearing, invalid input, semester resets, and navigation state retention.
+- Browser smoke check at 390 × 844: COMP / number > 2000 / exactly 4 credits returned 10 Fall 2026–27 courses; badges, fractional credit options, and COMP 2011 → expanded COMP 1028 → COMP 1021 prerequisite grouping were observed. Native keyboard/device and enlarged-text checks were not rerun for this change.
+- Follow-up UI refinement: subject, course number, and credit controls now sit behind an expandable “More filters” row. At 390 × 844, the collapsed list and expanded controls were observed in the browser. Eight UI tests, lint, and typecheck passed after this refinement.
+- Regenerated catalogue remains 46.1% smaller than the original JSON baseline after adding careerType to summaries. Prior export-size figures above describe the earlier build and were not remeasured.
